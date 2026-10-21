@@ -1,0 +1,220 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amssymb}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.6em}{}
+\titlespacing{\section}{0pt}{13pt}{5pt}
+\titleformat{\subsection}{\bfseries}{}{0em}{}
+\titlespacing{\subsection}{0pt}{9pt}{3pt}
+\setlist[itemize]{topsep=3pt,itemsep=2pt,leftmargin=1.4em}
+\setlist[enumerate]{topsep=3pt,itemsep=3pt,leftmargin=1.6em}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+\pagestyle{empty}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries Proyecto: un clasificador de imágenes propio}\\[4pt]
+{\Large IPCC - ML}
+\end{center}
+
+
+\noindent\textbf{Grupos de 4 personas} \hfill
+\textbf{Entrega:} un video de 5 minutos \hfill
+\textbf{Plazo:} 26 de Octubre 10:00am
+
+\vspace{0.5cm}
+\hrule
+\vspace{1cm}
+
+\section{El problema}
+
+En clase entrenamos un clasificador de piedra, papel y tijera con un conjunto de imágenes sintéticas. El proyecto consiste en recorrer el
+mismo proceso completo, pero con un conjunto de datos construido por ustedes.
+
+\begin{quote}
+\textbf{Elijan tres objetos,  construyan el conjunto de imágenes, entrenen el clasificador y analicen en qué se equivoca.}
+\end{quote}
+
+\begin{tcolorbox}[colback=red!4,colframe=red!45,boxrule=0.7pt,title=\textbf{Qué se entrega}]
+\textbf{Únicamente un video de 5 minutos.} No se entrega el notebook ni el conjunto de imágenes.
+
+El video es la única evidencia del trabajo: lo que no aparezca ahí no se puede calificar.
+Los detalles de formato y entrega están más abajo.
+\end{tcolorbox}
+
+\vspace{1cm}
+
+\section{Los tres objetos}
+
+Tres objetos físicos, de libre elección, que puedan fotografiar con un celular. Condiciones:
+
+\begin{itemize}
+  \item {Distinguibles entre sí: } Si dos de los tres se parecen mucho, el clasificador los va a confundir, y el error va a quedar concentrado en ese par.
+  \item {Disponibles en cantidad o en variedad.} 
+\end{itemize}
+
+\begin{tcolorbox}[colback=blue!4,colframe=blue!20,boxrule=0.6pt, coltitle=black, title=\textbf{Ejemplos de conjuntos de tres:}]
+\begin{itemize}[label*=-]
+	\item Lápiz / borrador / sacapuntas
+	\item Tres frutas
+	\item Llaves / audífonos / cargador
+	\item Tres herramientas.
+\end{itemize} 
+\end{tcolorbox}
+
+\vspace{1cm}
+
+\section{El conjunto de imágenes}
+
+\begin{itemize}
+  \item \textbf{60 imágenes por objeto}, 180 en total para \textbf{entrenamiento}. Entre los cuatro son 45 fotos cada uno.
+  \item \textbf{Varíen las condiciones deliberadamente:} fondo, iluminación, distancia, ángulo y,
+        si decidieron trabajar con categorías, el ejemplar concreto del objeto. Un conjunto de 60
+        imágenes casi idénticas aporta mucho menos que 60 variadas.
+  \item Organícenlas en tres carpetas con el nombre de cada objeto. Recuerden que la etiqueta de
+        cada imagen es el nombre de su carpeta.
+  \item \textbf{10 imágenes por objeto} para el test, tomadas en condiciones
+        distintas al resto (otro lugar, otro momento, otra luz). Son el conjunto de prueba, y lo van a usar en vivo durante el video.
+\end{itemize}
+
+%\begin{tcolorbox}[colback=blue!4,colframe=blue!40,boxrule=0.6pt]
+%\textbf{Esta es la parte donde se decide el proyecto.} En clase el modelo falló con la foto de su
+%mano por cómo estaba construido el conjunto de entrenamiento, no por la arquitectura de la red.
+%Aquí el conjunto lo construyen ustedes, con las decisiones que eso implica.
+%\end{tcolorbox}
+
+\vspace{1cm}
+
+\section{Entrenamiento y experimentos}
+
+\begin{enumerate}
+	\item Reutilicen el notebook de la clase sustituyendo las imágenes por las suyas. 
+	
+	\begin{tcolorbox}[colback=blue!4,colframe=blue!20,boxrule=0.6pt, coltitle=black, title=\textbf{Tres clases}]
+		Noten que con tres clases, \textbf{responder al azar acierta una de cada tres veces}: un 33\,\% es
+		el punto de partida, no un resultado. Apunten a superar el 90\,\%.
+	\end{tcolorbox}
+	
+	\item Después, modifiquen \textbf{una sola cosa}, reentrenen y registren el efecto sobre el accuracy. \textit{Hagan dos modificaciones distintas (no al mismo tiempo). }
+	
+\end{enumerate}
+
+\vspace{1cm}
+
+\section{El video}
+
+\subsection{Formato y entrega}
+
+\begin{itemize}
+  \item \textbf{Duración: 5 minutos.} Es poco tiempo, ensayen antes de grabar.
+  \item \textbf{Hablan los cuatro.} Repártanse el contenido por bloques.
+  \item \textbf{Se envía a los correos:} mbastidaso@unal.edu.co y jfgarciava@unal.edu.co
+  \item \textbf{Nombre del archivo:} los cuatro apellidos en orden alfabético, separados por guion bajo. Por ejemplo: \texttt{Cardona\_Gómez\_Restrepo\_Zapata.mp4}
+\end{itemize}
+
+\subsection{Qué debe aparecer}
+
+\begin{enumerate}
+  \item \textbf{El conjunto de imágenes.} Abran las carpetas y recorran varias imágenes de cada objeto, de modo que se vea cuántas son y qué tan variadas quedaron. 
+  \item \textbf{El código, celda por celda.} Es el componente de mayor peso en la calificación.
+  \item \textbf{Los resultados:} el accuracy y la matriz de confusión.
+  \item \textbf{La prueba en vivo:} pasen 5 imágenes del conjunto de prueba por el modelo mientras graban, sin cortes, y comenten qué responde en cada una.
+  \item \textbf{El análisis:} qué par de objetos confunde, por qué creen que ocurre, y en qué situación usarían o no este clasificador.
+\end{enumerate}
+
+\begin{tcolorbox}[colback=black!4,colframe=black!45,boxrule=0.6pt]
+\noindent \textbf{Nota:}  Con 5 minutos no alcanza para detenerse en todas las celdas por igual, así que hay que jerarquizar, de las celdas que importan digan tres cosas: \textbf{qué hace}, \textbf{por qué} y \textbf{qué pasaría si se quitara}. 
+\end{tcolorbox}
+
+\subsection{Cómo grabar}
+
+\begin{tabular}{L{3.2cm} L{11cm}}
+\toprule
+Windows & \textbf{Windows + G} abre la barra de grabación. Viene instalada. \\
+macOS & \textbf{Cmd + Shift + 5}, seleccionar grabar pantalla. Viene instalado. \\
+Alternativa & Abrir una reunión de Meet, compartir pantalla y grabarla. \\
+\bottomrule
+\end{tabular}
+
+\begin{tcolorbox}[colback=black!4,colframe=black!45,boxrule=0.6pt]
+\textbf{Si el modelo falla, muéstrenlo.} No corten la prueba en vivo ni la repitan hasta que
+salga bien. Un error mostrado y explicado vale más puntos que una ejecución perfecta sin análisis:
+entender por qué un modelo se equivoca es precisamente el objetivo del curso.
+\end{tcolorbox}
+
+\section{Rúbrica}
+
+\begin{center}
+	\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{L{10cm} c}
+\toprule
+\textbf{Criterio} & \textbf{Pts}  \\
+\midrule
+
+\textbf{Explicación del código} & 35 \\
+
+\textbf{Conjunto de imágenes} & 20 \\
+
+\textbf{Prueba en vivo y análisis del error}
+& 25 \\
+
+\textbf{Experimentos}
+& 10 \\
+
+\textbf{Realización del video}
+& 10 \\
+
+\midrule
+\textbf{Total} & \textbf{100}  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tcolorbox}[colback=black!4,colframe=black!45,boxrule=0.6pt]
+\textbf{El accuracy del modelo no otorga puntos por sí mismo.} Un trabajo con 50\,\% bien explicado califica por encima de uno con 99\,\% donde el código se lee sin entender nada. Lo que se evalúa es el razonamiento sobre lo que hicieron.
+\end{tcolorbox}
+
+\newpage 
+
+\section*{Anexo: reducir el tamaño de las imágenes}
+
+Una fotografía de celular pesa alrededor de 3\,MB, de modo que las 180 del proyecto suman más de medio gigabyte. Subir eso a Drive y leerlo desde Colab es lento sin necesidad.
+
+La red entrena con imágenes de 128 píxeles de lado, así que toda la resolución adicional se descarta de todos modos durante el preprocesamiento. Conviene reducirlas antes:
+
+\begin{tcolorbox}[colback=black!3,colframe=black!45,boxrule=0.6pt,fontupper=\ttfamily\small]
+from PIL import Image\\
+from pathlib import Path\\[4pt]
+ORIGINALES = Path("/content/drive/MyDrive/mis\_fotos")\\
+REDUCIDAS  = Path("imagenes")\\[4pt]
+for foto in ORIGINALES.rglob("*"):\\
+\hspace*{1em}if foto.suffix.lower() not in [".jpg", ".jpeg", ".png"]:\\
+\hspace*{2em}continue\\
+\hspace*{1em}destino = REDUCIDAS / foto.parent.name\\
+\hspace*{1em}destino.mkdir(parents=True, exist\_ok=True)\\
+\hspace*{1em}img = Image.open(foto).convert('RGB')\\
+\hspace*{1em}img.thumbnail((256, 256))\\
+\hspace*{1em}img.save(destino / (foto.stem + ".jpg"), quality=85)\\[4pt]
+print("Listo. Usar CARPETA = Path('imagenes')")
+\end{tcolorbox}
+
+\vspace{4pt}
+\noindent\emph{Una comprobación importante para ustedes:} abrir una imagen original y su versión reducida lado a lado. ¿Son visualmente equivalentes?
+
+\end{document}

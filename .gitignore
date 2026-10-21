@@ -1,0 +1,27 @@
+# Datos de ejemplo de la clase (se descargan desde el notebook)
+datos/
+rps/
+rps-test-set/
+
+# Lista del curso (nombres de estudiantes)
+IPCC26II-Lista-*.xlsx
+
+# Paper de referencia (material con derechos de autor)
+refALEX-NET.pdf
+
+# Entregas: el video final no va en git
+ENTREGAS/
+
+# Fotos propias del proyecto (originales y reducidas)
+imagenes/
+mis_fotos/
+
+# Compilación de LaTeX
+*.aux
+*.log
+*.out
+
+# Sistema y Python
+.DS_Store
+__pycache__/
+.ipynb_checkpoints/
