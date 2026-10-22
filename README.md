@@ -11,6 +11,7 @@ con el celular**.
 |---|---|
 | `proyecto_clasificador.pdf` / `.tex` | Enunciado del proyecto (fuente en LaTeX y PDF compilado). |
 | `clase_clasificacion_imagenes.ipynb` | Notebook de la clase (piedra, papel o tijera con fastai/PyTorch). Es la base que vamos a reutilizar cambiando las imágenes. |
+| `docs/documento-de-estudio.md` | Documento vivo del equipo: reparto de tareas, protocolo de fotos, explicación del código celda por celda, experimentos, guion del video, calendario y bitácora. |
 
 Lo que **no** se sube (ver `.gitignore`): los datos de ejemplo de la clase, la
 lista del curso, el paper de referencia y el video final.
