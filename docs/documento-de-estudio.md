@@ -3,7 +3,7 @@
 > **Para qué sirve este documento.** Es la memoria viva del proyecto: aquí se anota
 > *qué se va construyendo*, *cómo funciona cada parte del código* y *qué se va a decir en el
 > video*. Se estudia de aquí y se prepara la exposición desde aquí.
-> Se actualiza después de cada avance (ver la sección 8, **Bitácora**).
+> Se actualiza después de cada avance (ver la sección 9, **Bitácora**).
 
 **Entrega:** un video de 5 minutos, **lunes 26 de octubre de 2026, 10:00 am**.
 **Envío:** `mbastidaso@unal.edu.co` y `jfgarciava@unal.edu.co`.
@@ -69,12 +69,13 @@ Así el conjunto de prueba es realmente independiente y los fotógrafos no carga
 ## 2. Protocolo de fotos
 
 ### 2.1 Elegir los tres objetos
+
 - Que se distingan entre sí a simple vista (si dos se parecen, el error se concentra en ese par).
 - Que haya muchas unidades o muchas formas de verlos.
 - Ejemplos del enunciado: lápiz / borrador / sacapuntas; tres frutas; llaves / audífonos /
   cargador; tres herramientas.
 
-**Objetos elegidos:** _(pendiente)_ 1. ______ 2. ______ 3. ______
+**Objetos elegidos:** _(pendiente)_ — objeto 1: …… · objeto 2: …… · objeto 3: ……
 
 ### 2.2 Estructura de carpetas
 La etiqueta de cada imagen es **el nombre de su carpeta**:
@@ -106,8 +107,10 @@ de cada objeto entre estas variaciones:
 | Ejemplar | si es una categoría (p. ej. «fruta»), usar ejemplares distintos |
 
 ### 2.4 Qué evitar
+
 - Que **un objeto siempre salga con el mismo fondo** y otro con otro: el modelo podría aprender
   el fondo en lugar del objeto.
+
 - Fotos borrosas, mal enfocadas o donde el objeto casi no se ve.
 - Mezclar fotos de entrenamiento con las de prueba.
 
@@ -118,6 +121,7 @@ lado a lado** para comprobar que se ven equivalentes. Luego subir a Drive y apun
 carpeta de entrenamiento.
 
 ### 2.6 Lista de verificación
+
 - [ ] 60 fotos por objeto en entrenamiento (180 en total)
 - [ ] 10 fotos por objeto en prueba, tomadas en condiciones distintas (30 en total)
 - [ ] Variedad en fondo, luz, distancia y ángulo
@@ -131,10 +135,13 @@ carpeta de entrenamiento.
 
 - Se ejecuta en **Google Colab** con GPU: *Entorno de ejecución → Cambiar tipo de entorno de
   ejecución → T4 GPU*. Con GPU toma unos 3 minutos; sin ella, más de media hora.
+
 - Partir del notebook de clase (`clase_clasificacion_imagenes.ipynb`) y **sustituir las imágenes
   por las propias**. La mayor parte del código no cambia.
+
 - Con tres clases el azar acierta el **33 %**: ese número es el punto de partida, no un resultado.
   La meta del enunciado es superar el **90 %**.
+
 - Referencia: el notebook de clase, con las manos sintéticas, guarda una exactitud de
   **90,59 %** sobre las 372 imágenes de prueba.
 
@@ -155,20 +162,25 @@ imágenes en carpetas ──► DataBlock (etiqueta, partición, tamaño, aument
 ```
 
 ### Celda 2 — Verificar la GPU
+
 - **Qué hace:** `torch.cuda.is_available()` revisa si Colab asignó una GPU y la nombra.
 - **Por qué:** entrenar una red es hacer muchísimas operaciones iguales en paralelo, justo lo que
   hace una GPU.
+
 - **Si se quita:** el código sigue funcionando, pero entrenaría en CPU y tardaría más de media hora
   en lugar de ~3 minutos.
 
 ### Celdas 4 y 5 — Instalar e importar fastai
+
 - **Qué hace:** `pip install fastai` instala la biblioteca; `from fastai.vision.all import *` trae
   `DataBlock`, `Learner`, `Resize`, `aug_transforms`, etc.; `nn` de PyTorch trae las piezas para
   construir la red.
+
 - **Por qué:** fastai permite entrenar un modelo de visión con poco código; por debajo usa PyTorch.
 - **Si se quita:** nada de lo siguiente se encuentra (`NameError`).
 
 ### Celda 7 — Descargar los datos (**se elimina en nuestro proyecto**)
+
 - **Qué hace:** descarga `rps.zip` y `rps-test-set.zip` y los descomprime en `datos/`.
 - **En nuestro proyecto:** se reemplaza por nuestras carpetas de fotos. No se descarga nada.
 
@@ -178,26 +190,34 @@ CARPETA = Path("datos/rps")
 imagenes = get_image_files(CARPETA)
 parent_label(imagenes[0])
 ```
+
 - **Qué hace:** `get_image_files` recorre la carpeta y sus subcarpetas y devuelve las rutas de todas
   las imágenes; `parent_label` devuelve el nombre de la carpeta de una imagen, que es su **etiqueta**.
+
 - **Por qué:** en clasificación de imágenes la respuesta correcta no está en un archivo aparte: está
   en el nombre de la carpeta.
+
 - **Qué cambia:** `CARPETA` pasa a apuntar a nuestras fotos de entrenamiento.
 - **Si se quita:** no hay lista de imágenes ni etiquetas para el resto del pipeline.
 
 ### Celda 11 — Verificar que las clases estén balanceadas
+
 - **Qué hace:** cuenta cuántas imágenes hay por clase (`Counter`) y las grafica en barras.
 - **Por qué:** si el 95 % fueran de una clase, responder siempre esa clase acertaría 95 % sin haber
   aprendido nada. Con clases balanceadas esa salida no existe.
+
 - **En nuestro proyecto:** deben salir 60 / 60 / 60.
 - **Si se quita:** el código funciona, pero se pierde la comprobación de que los datos son sanos.
 
 ### Celdas 12 y 14 — Mirar los datos y ver qué recibe el modelo
+
 - **Qué hace:** abre una imagen, muestra su etiqueta y tamaño, y la convierte en un arreglo de
   números con `image2tensor`: forma `(3, alto, ancho)` = (canales R, G, B; alto; ancho), con valores
   de 0 a 255.
+
 - **Por qué:** el modelo no ve una foto, ve una **tabla de números**. Una imagen de 300 × 300 en color
   son 270.000 números.
+
 - **Regla general:** nunca se entrena sin haber mirado los datos antes.
 
 ### Celda 16 — `DataBlock`: la receta de los datos (**de las más importantes**)
@@ -224,13 +244,16 @@ dls = datos.dataloaders(CARPETA, bs=32)
 
 - **Con nuestros datos:** 180 imágenes → unas **144 de entrenamiento y 36 de validación**. Es poco:
   la validación es ruidosa (cada imagen mal clasificada mueve el accuracy ~2,8 puntos).
+
 - **Por qué el aumento importa aquí:** con solo 144 imágenes de entrenamiento, el aumento de datos
   es una de las pocas formas de darle más variedad al modelo.
 
 ### Celda 17 — `show_batch`
+
 - **Qué hace:** muestra 8 imágenes ya transformadas, con su etiqueta.
 - **Por qué:** verifica dos cosas a la vez: que las etiquetas correspondan a lo que se ve (el pipeline
   es correcto) y que las transformaciones no destruyan la información.
+
 - **Si se quita:** si hubiera un error en las etiquetas o el aumento fuera demasiado agresivo, no
   lo veríamos hasta el final.
 
@@ -265,6 +288,7 @@ def crear_red(n_clases=3):
 | `MaxPool2d(2)` | Reduce la resolución a la mitad quedándose con el mayor valor de cada región 2 × 2 | la siguiente capa vería una región mucho menor de la imagen y el cómputo crecería |
 
 **Cierre de la red:**
+
 - `AdaptiveAvgPool2d(1)`: resume cada mapa de activación en **un solo número** (el promedio).
 - `Flatten`: deja un vector de 128 números.
 - `Linear(128, n_clases)`: la decisión final, **una puntuación por clase**. `n_clases` pasa a 3.
@@ -295,43 +319,56 @@ capa es `entran × salen × 9 + salen`, más `2 × salen` de BatchNorm; la capa 
 learn = Learner(dls, crear_red(), loss_func=CrossEntropyLossFlat(), metrics=accuracy)
 learn.fit_one_cycle(12, 3e-3)
 ```
+
 - **`Learner`** reúne los datos, el modelo y la función que mide el error.
 - **`CrossEntropyLossFlat`** es la medida de error estándar en clasificación: penaliza según la
   probabilidad que el modelo le asignó a la clase **correcta**.
+
 - **`metrics=accuracy`**: proporción de aciertos sobre validación.
 - **`fit_one_cycle(12, 3e-3)`**: 12 **épocas** (una época = un recorrido completo del conjunto de
   entrenamiento) con tasa de aprendizaje máxima de `3e-3`. La tasa de aprendizaje es cuánto se mueven
   los parámetros en cada ajuste: demasiado alta y el entrenamiento se desestabiliza; demasiado baja
   y no avanza.
+
 - **Lo que debe verse:** `train_loss` y `valid_loss` bajan, `accuracy` sube.
 - **Señal de alarma (sobreajuste):** `train_loss` sigue bajando mientras `valid_loss` empieza a subir.
 - **Si se quitara:** no hay entrenamiento: la red quedaría con sus valores aleatorios iniciales y
   acertaría más o menos al azar (≈ 33 %).
 
 ### Celda 23 — Curvas de entrenamiento
+
 - **Qué hace:** grafica error de entrenamiento y de validación por época, y el accuracy con una línea
   punteada en 1/3 (el azar).
+
 - **Por qué:** es la forma de **ver** si el modelo aprende, se estanca o sobreajusta.
 
 ### Celda 25 — Los filtros de la primera capa
+
 - **Qué hace:** extrae `learn.model[0][0].weight` (forma `(16, 3, 3, 3)`: 16 filtros, 3 canales,
   3 × 3) y dibuja cada filtro como una pequeña imagen.
+
 - **Por qué:** los filtros empezaron con valores aleatorios y nadie dijo qué debían buscar. Lo que
   se ve son gradientes, bordes y manchas de color: **emergieron del entrenamiento**.
+
 - **Conexión con AlexNet:** la Figura 3 del paper muestra lo mismo para 96 filtros de 11 × 11 × 3.
 
 ### Celda 27 — `show_results`
+
 - Muestra predicciones individuales (real / predicha); las incorrectas salen marcadas en rojo.
 
 ### Celda 29 — Matriz de confusión (**clave para el análisis**)
+
 - **Cómo se lee:** cada **fila** es la clase real, cada **columna** la clase que el modelo predijo.
   La **diagonal** son aciertos; lo que queda fuera de la diagonal son errores y su posición dice
   **qué clase se confundió con cuál**.
+
 - **Por qué:** dos modelos con el mismo accuracy pueden fallar de maneras distintas (repartidos entre
   todas las clases o concentrados en un par). Se corrigen de forma diferente.
+
 - **Esto responde a la pregunta del video:** *«¿qué par de objetos confunde y por qué?»*
 
 ### Celda 30 — `plot_top_losses`
+
 - Muestra los errores donde el modelo estaba **más seguro** de sí mismo. Son los casos que más
   conviene revisar: con frecuencia revelan etiquetas mal asignadas o fotos problemáticas.
 
@@ -341,11 +378,14 @@ imagenes_prueba = get_image_files(Path("datos/rps-test-set"))
 prueba = learn.dls.test_dl(imagenes_prueba, with_labels=True)
 error, acierto = learn.validate(dl=prueba)
 ```
+
 - **Por qué existe:** el conjunto de validación se usó para decidir épocas, tasa de aprendizaje y número
   de capas, así que su medida ya es algo optimista. El conjunto de **prueba** no se toca en ningún
   momento del proceso: es la única estimación limpia.
+
 - **`test_dl`** aplica el mismo preprocesamiento a imágenes nuevas; `with_labels=True` toma también
   su etiqueta para poder comparar.
+
 - **En nuestro proyecto:** apuntar a `fotos/prueba/` (30 imágenes) y **usar estas imágenes en vivo
   durante el video**.
 
@@ -373,7 +413,7 @@ Ideas (elegir dos; cada una conecta con algo del código que ya habrá que expli
 | Más filtros o una capa más | `capa(…)` en `crear_red` | si más capacidad ayuda con tan pocos datos |
 | Sin `BatchNorm2d` | quitar esa línea de `capa` | efecto sobre la estabilidad del entrenamiento |
 
-**Experimentos elegidos:** A (C1): ______________  B (C2): ______________
+**Experimentos elegidos:** A (C1): _(pendiente)_ · B (C2): _(pendiente)_
 
 ---
 
@@ -411,16 +451,20 @@ Hablan los cuatro. El código es lo que más pesa (35 pts): darle la mayor parte
 > dónde se pasan.
 
 ### 7.2 Reglas que dicta el enunciado
+
 - **Jerarquizar las celdas.** No alcanza el tiempo para todas por igual. De las que importan:
   **qué hace, por qué está, qué pasaría si se quitara.**
+
 - **El código «celda por celda»** es el componente de mayor peso.
 - **Prueba en vivo: 5 imágenes de prueba, sin cortes.** **Si el modelo falla, mostrarlo y explicarlo:**
   no cortar ni repetir hasta que salga bien. Un error explicado vale más que una ejecución perfecta
   sin análisis.
+
 - **El accuracy no da puntos por sí mismo.** Un 50 % bien explicado califica más que un 99 % donde el
   código se lee sin entender. Lo que se evalúa es el razonamiento.
 
 ### 7.3 Cómo grabar
+
 - **macOS:** `Cmd + Shift + 5` → grabar pantalla. **Windows:** `Windows + G`.
 - Alternativa: una reunión de Meet con pantalla compartida, grabada.
 - Nombrar el archivo con los **cuatro apellidos en orden alfabético**, separados por guion bajo, `.mp4`.
@@ -460,14 +504,18 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 > No se editan las entradas viejas; se agregan nuevas debajo.
 
 ### 2026-10-19 — Repositorio y enunciado
+
 - Se creó el repositorio `69kingDavid69/proyecto-red-neuronal` (privado) y se invitó al resto del equipo.
 - Se subió el enunciado (`.tex`/`.pdf`), el notebook de clase y un README; los datos de ejemplo, la
   lista del curso y el paper de referencia quedaron fuera del repo con `.gitignore`.
+
 - **Verificación:** se comprobó en GitHub que están los cinco archivos esperados.
 
 ### 2026-10-22 — Plan, reparto y documento de estudio
+
 - Se leyó el notebook completo (33 celdas) y se escribió la sección 4 con la explicación celda por
   celda, usando las salidas guardadas del notebook (98.307 parámetros; dimensiones por capa).
+
 - Se propuso el reparto F1/F2 (fotos) y C1/C2 (código), y que el conjunto de prueba lo tomen C1 y C2.
 - **Pendiente:** elegir los tres objetos, nombres de los roles, los dos experimentos.
 - **Verificación:** el conteo de parámetros (98.307) se recalculó a mano:
@@ -476,6 +524,7 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 ---
 
 ## Referencias
+
 - Enunciado: `proyecto_clasificador.pdf` (IPCC – ML).
 - Notebook de clase: `clase_clasificacion_imagenes.ipynb`.
 - Krizhevsky, Sutskever y Hinton (2012). *ImageNet Classification with Deep Convolutional Neural
