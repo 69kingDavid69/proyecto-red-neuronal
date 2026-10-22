@@ -136,14 +136,63 @@ carpeta de entrenamiento.
 - Se ejecuta en **Google Colab** con GPU: *Entorno de ejecución → Cambiar tipo de entorno de
   ejecución → T4 GPU*. Con GPU toma unos 3 minutos; sin ella, más de media hora.
 
-- Partir del notebook de clase (`clase_clasificacion_imagenes.ipynb`) y **sustituir las imágenes
-  por las propias**. La mayor parte del código no cambia.
+- **Ya está listo el notebook adaptado: `clasificador_propio.ipynb`.** Parte del de clase
+  (`clase_clasificacion_imagenes.ipynb`) con estos cambios: sin la descarga de `rps.zip`; las carpetas
+  son variables (`CARPETA_ENTRENAMIENTO`, `CARPETA_PRUEBA`); una celda opcional para montar Drive y
+  otra para reducir las fotos; los valores de los experimentos arriba (`USAR_AUMENTO`, `BS`, `EPOCAS`,
+  `TASA`); matriz de confusión sobre las fotos de **prueba**; y una celda de **prueba en vivo** (5
+  imágenes con su predicción y qué tan seguro estaba). Las celdas marcadas **⚙ PARÁMETROS** son las
+  únicas que se tocan.
+- **Qué falta para usarlo:** poner los nombres de los tres objetos en la primera celda y apuntar las
+  carpetas a las fotos reales.
 
 - Con tres clases el azar acierta el **33 %**: ese número es el punto de partida, no un resultado.
   La meta del enunciado es superar el **90 %**.
 
 - Referencia: el notebook de clase, con las manos sintéticas, guarda una exactitud de
   **90,59 %** sobre las 372 imágenes de prueba.
+
+### 3.1 Hallazgo importante: con la configuración de la clase el modelo falla con 180 imágenes
+
+Se hizo un **ensayo con datos sustitutos** (60 imágenes por clase tomadas de las manos sintéticas de
+la clase, 10 por clase de prueba; script en `scripts/ensayo_configuraciones.py`). **No son nuestros
+datos ni nuestros resultados**: sirve para anticipar un problema, no para predecir el accuracy.
+
+**Lo que se observó con los valores de la clase (12 épocas, lote 32):**
+- Con ~144 imágenes de entrenamiento y lotes de 32 hay **4 ajustes por época, 48 en total**
+  (en la clase eran ~63 por época).
+- `train_loss` bajó (de 1,13 a 0,61) pero `valid_loss` **subió** (hasta ~6,8) y el accuracy de
+  validación se quedó en **22 %**, **debajo del azar**. En las tres corridas el accuracy de prueba
+  fue **33 %**; en la que se diagnosticó, el modelo contestó **«rock» en las 36 imágenes de validación**.
+- **No era memorización (sobreajuste):** en modo evaluación el modelo falla **incluso sobre las
+  mismas imágenes de entrenamiento** (accuracy 36,7 %, error 2,41), mientras que durante el
+  entrenamiento el error era 0,61. Hay una diferencia entre cómo se comporta la red entrenando y
+  evaluando; es **consistente con** que las estadísticas de `BatchNorm2d` (promedios móviles) no
+  alcanzan a ajustarse en tan pocos pasos. _(Es una hipótesis razonable; no se probó aislando la
+  capa.)_
+
+**Resultados de las configuraciones (3 corridas cada una, datos sustitutos):**
+
+| Configuración | Accuracy validación | Accuracy prueba |
+|---|---|---|
+| Clase: 12 épocas, lote 32, tasa 3e-3 | 0,22 · 0,22 · 0,22 | 0,33 · 0,33 · 0,33 |
+| 40 épocas, lote 32 | 0,94 · 0,97 · 0,97 | 0,83 · 0,83 · 0,90 |
+| 12 épocas, lote 16 | 0,94 · 0,94 · 0,92 | 0,87 · 0,80 · 0,63 |
+| **30 épocas, lote 16 (base del notebook)** | 0,97 · 1,00 · 0,94 | 0,97 · 0,93 · 0,90 |
+| 30 épocas, lote 16, tasa 1e-2 | 0,97 · 0,97 · 1,00 | 0,97 · 0,87 · 0,97 |
+| 30 épocas, lote 16, **sin aumento de datos** | 0,97 · 1,00 · 0,97 | 0,87 · 0,80 · 0,90 |
+
+**Qué se concluye:**
+- Lo que importa es el **número total de ajustes** (imágenes ÷ lote × épocas), no la cantidad de
+  épocas por sí sola. Con tan pocas imágenes hay que bajar el lote o subir las épocas.
+- Por eso el notebook adaptado usa **`BS = 16` y `EPOCAS = 30`**. Es un cambio respecto a la clase
+  que **hay que poder explicar en el video**.
+- En este ensayo, quitar el aumento de datos **no cambió la validación pero sí bajó la prueba**
+  (promedio ~0,86 contra ~0,93). Con 36 imágenes de validación esa diferencia no se ve; la de
+  prueba sí. Es un buen candidato a experimento, **pero con datos sintéticos limpios**: con fotos
+  reales el efecto puede ser distinto.
+- Las corridas varían entre sí (el notebook no fija semilla para el entrenamiento): un mismo
+  notebook dio 93 % y 97 % en prueba. **No sacar conclusiones de una sola corrida.**
 
 ---
 
@@ -230,8 +279,9 @@ datos = DataBlock(
     item_tfms=Resize(160),
     batch_tfms=aug_transforms(size=128),
 )
-dls = datos.dataloaders(CARPETA, bs=32)
+dls = datos.dataloaders(CARPETA, bs=BS)
 ```
+_(En `clasificador_propio.ipynb` `CARPETA` se llama `CARPETA_ENTRENAMIENTO` y `bs` es la variable `BS`.)_
 | Argumento | Qué hace | Si se quitara o cambiara |
 |---|---|---|
 | `blocks=(ImageBlock, CategoryBlock)` | Entra una imagen, sale una categoría | fastai no sabría qué tipo de problema es |
@@ -240,7 +290,7 @@ dls = datos.dataloaders(CARPETA, bs=32)
 | `splitter=RandomSplitter(valid_pct=0.2, seed=42)` | 80 % entrenamiento / 20 % validación; `seed` fija el sorteo | sin `seed` la partición cambia en cada corrida y los resultados no son reproducibles |
 | `item_tfms=Resize(160)` | Deja cada imagen del mismo tamaño, una por una | las imágenes de distinto tamaño no se pueden agrupar en un lote |
 | `batch_tfms=aug_transforms(size=128)` | **Aumento de datos** sobre el lote, en la GPU, y deja todo en 128 × 128 | sin aumento, el modelo ve siempre las mismas fotos y es más fácil que memorice _(a verificar con el experimento)_ |
-| `bs=32` | 32 imágenes procesadas a la vez | más grande exige más memoria de la GPU; más pequeño, entrenamiento más lento y más ruidoso |
+| `bs=BS` (`BS = 16`; en la clase, 32) | Imágenes procesadas juntas; **el modelo se ajusta una vez por lote** | más grande exige más memoria de la GPU y da **menos ajustes por época**; con ~144 imágenes y lote 32 solo hay 4 ajustes por época y el modelo no aprendió (sección 3.1) |
 
 - **Con nuestros datos:** 180 imágenes → unas **144 de entrenamiento y 36 de validación**. Es poco:
   la validación es ruidosa (cada imagen mal clasificada mueve el accuracy ~2,8 puntos).
@@ -317,7 +367,7 @@ capa es `entran × salen × 9 + salen`, más `2 × salen` de BatchNorm; la capa 
 ### Celda 22 — `Learner` y entrenamiento
 ```python
 learn = Learner(dls, crear_red(), loss_func=CrossEntropyLossFlat(), metrics=accuracy)
-learn.fit_one_cycle(12, 3e-3)
+learn.fit_one_cycle(12, 3e-3)   # clase; en clasificador_propio.ipynb: fit_one_cycle(EPOCAS, TASA) con EPOCAS = 30
 ```
 
 - **`Learner`** reúne los datos, el modelo y la función que mide el error.
@@ -325,7 +375,7 @@ learn.fit_one_cycle(12, 3e-3)
   probabilidad que el modelo le asignó a la clase **correcta**.
 
 - **`metrics=accuracy`**: proporción de aciertos sobre validación.
-- **`fit_one_cycle(12, 3e-3)`**: 12 **épocas** (una época = un recorrido completo del conjunto de
+- **`fit_one_cycle(12, 3e-3)`** (en nuestro notebook **30** épocas, por la razón de la sección 3.1): 12 **épocas** (una época = un recorrido completo del conjunto de
   entrenamiento) con tasa de aprendizaje máxima de `3e-3`. La tasa de aprendizaje es cuánto se mueven
   los parámetros en cada ajuste: demasiado alta y el entrenamiento se desestabiliza; demasiado baja
   y no avanza.
@@ -390,10 +440,15 @@ error, acierto = learn.validate(dl=prueba)
   durante el video**.
 
 ### Cambios que hay que hacer para nuestros datos
-1. Quitar la celda de descarga (7) y apuntar `CARPETA` a `fotos/entrenamiento`.
-2. Apuntar la celda 32 a `fotos/prueba`.
-3. La red ya recibe `n_clases=3`: no hay que tocarla.
-4. Revisar títulos y textos del notebook que mencionen «piedra, papel o tijera».
+> **Estos cambios ya están hechos en `clasificador_propio.ipynb`.** Solo falta poner los nombres de
+> los tres objetos y apuntar las carpetas a las fotos reales.
+
+1. Se quitó la celda de descarga (7); `CARPETA` pasa a `CARPETA_ENTRENAMIENTO` (`fotos/entrenamiento`).
+2. La celda 32 usa `CARPETA_PRUEBA` (`fotos/prueba`).
+3. `BS = 16` y `EPOCAS = 30` (sección 3.1).
+4. La celda de píxeles calcula el centro de la imagen en vez de usar `147:153`, que solo servía para
+   imágenes de 300 × 300.
+5. Nuevas: montar Drive, reducir fotos, matriz de confusión sobre la prueba y **prueba en vivo**.
 
 ---
 
@@ -407,11 +462,15 @@ Ideas (elegir dos; cada una conecta con algo del código que ya habrá que expli
 
 | Idea | Qué se cambia | Qué se espera aprender |
 |---|---|---|
-| Sin aumento de datos | quitar `batch_tfms=aug_transforms(...)` | cuánto aporta el aumento con pocas imágenes |
-| Más/menos épocas | `fit_one_cycle(12, …)` → otro número | dónde aparece el sobreajuste |
-| Otra tasa de aprendizaje | `3e-3` → `1e-2` o `1e-3` | sensibilidad a la tasa |
+| Sin aumento de datos (`USAR_AUMENTO = False`) | quitar `aug_transforms` | cuánto aporta el aumento con pocas imágenes (en el ensayo sustituto bajó la prueba ~0,93 → ~0,86) |
+| Más/menos épocas (`EPOCAS`) o lote (`BS`) | p. ej. `EPOCAS = 12` o `BS = 32` | ver el fallo de la sección 3.1 y explicar **por qué** pasa |
+| Otra tasa de aprendizaje (`TASA`) | `3e-3` → `1e-2` o `1e-3` | sensibilidad a la tasa (en el ensayo sustituto `1e-2` fue parecida a la base) |
 | Más filtros o una capa más | `capa(…)` en `crear_red` | si más capacidad ayuda con tan pocos datos |
 | Sin `BatchNorm2d` | quitar esa línea de `capa` | efecto sobre la estabilidad del entrenamiento |
+
+> **Cuidado con la regla «una sola cosa a la vez».** Los valores base del notebook (`BS = 16`,
+> `EPOCAS = 30`) ya difieren de la clase. Cada experimento parte de **esa base** y cambia **una**
+> variable. Repetir cada corrida 2–3 veces: una sola puede engañar.
 
 **Experimentos elegidos:** A (C1): _(pendiente)_ · B (C2): _(pendiente)_
 
@@ -490,7 +549,7 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 
 | Día | Meta |
 |---|---|
-| **Jue 22/10** | Elegir los tres objetos. Repartir roles. Empezar las fotos. C1/C2: abrir el notebook en Colab con GPU y comprobar que corre con las manos sintéticas. |
+| **Jue 22/10** | Elegir los tres objetos. Repartir roles. Empezar las fotos. C1/C2: subir `clasificador_propio.ipynb` a Colab con GPU y comprobar que corre (ya probado localmente con datos sustitutos). |
 | **Vie 23/10** | Fotos de entrenamiento completas (180). Reducirlas y subirlas a Drive. C1/C2: adaptar el notebook a las carpetas propias. |
 | **Sáb 24/10** | Fotos de prueba (30, en otras condiciones). Corrida base + **dos experimentos**. Llenar la sección 6. |
 | **Dom 25/10** | Cerrar el análisis del error. Repartir el guion, **ensayar y grabar**. Revisar el video completo. |
@@ -520,6 +579,19 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 - **Pendiente:** elegir los tres objetos, nombres de los roles, los dos experimentos.
 - **Verificación:** el conteo de parámetros (98.307) se recalculó a mano:
   `448+32 + 4.640+64 + 18.496+128 + 73.856+256 + 387 = 98.307`. Coincide con la salida del notebook.
+
+### 2026-10-22 (tarde) — Notebook adaptado y ensayo con datos sustitutos
+- Se creó `clasificador_propio.ipynb` a partir del de clase (ver la sección 3) y `scripts/ensayo_configuraciones.py`.
+- **Hallazgo:** con los valores de la clase (12 épocas, lote 32) y 180 imágenes el modelo no aprende
+  (22 % en validación, siempre la misma clase). Con lote 16 y 30 épocas llega a ~93–97 % en prueba
+  (datos sintéticos). Detalle en la sección 3.1. **Decisión:** el notebook usa `BS = 16`, `EPOCAS = 30`.
+- **Se corrigió un error propio** en la celda de prueba en vivo (la imagen se dibujaba en una figura
+  y el título en otra); ahora usa un solo eje.
+- **Verificación:** el notebook se ejecutó de punta a punta sin errores (fastai 2.8.12) con 60
+  imágenes por clase de entrenamiento y 10 de prueba; la celda de prueba en vivo muestra las 5
+  imágenes con su predicción. Probado en CPU/Mac, **no en Colab con GPU**.
+- **Límite:** los datos sustitutos son renders limpios; con fotos reales (fondos, luz) el accuracy
+  será menor y el efecto de cada experimento puede cambiar.
 
 ---
 
