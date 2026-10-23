@@ -498,13 +498,12 @@ Hablan los cuatro. El código es lo que más pesa (35 pts): darle la mayor parte
 
 | Tiempo | Bloque | Quién | Qué mostrar / decir |
 |---|---|---|---|
-| 0:00–0:15 | Introducción | F1 | Qué problema es, qué tres objetos |
-| 0:15–1:00 | **Conjunto de imágenes** (20 pts) | F1, F2 | Abrir las carpetas, recorrer varias imágenes de cada objeto, decir cuántas hay y qué variaciones |
-| 1:00–1:55 | **Código I: datos** (35 pts) | C1 | Celdas 9, 11, **16** (`DataBlock`, partición, aumento) |
-| 1:55–2:50 | **Código II: modelo** (35 pts) | C2 | Celda **20** (capa, dimensiones), celda **22** (`Learner`, épocas, tasa de aprendizaje) |
-| 2:50–3:35 | **Resultados y experimentos** (10 pts) | C1 / C2 | Curvas, accuracy, matriz de confusión; los dos experimentos y su efecto |
-| 3:35–4:25 | **Prueba en vivo** (25 pts) | F2 | 5 imágenes de prueba, **sin cortes**, comentando cada respuesta |
-| 4:25–5:00 | **Análisis** | F1 / C2 | Qué par confunde, por qué, cuándo usarlo y cuándo no |
+| 0:00–0:45 | Introducción + **conjunto de imágenes** (20 pts) | F1, F2 | Qué problema es y qué objetos; abrir las carpetas y recorrer varias imágenes de cada objeto, decir cuántas hay y qué variaciones |
+| 0:45–1:45 | **Código I: datos** (35 pts) | C1 | Celdas 9, 11, **16** (`DataBlock`, partición, aumento) |
+| 1:45–2:45 | **Código II: modelo** (35 pts) | C2 | Celda **20** (capa, dimensiones), celda **22** (`Learner`, épocas, tasa de aprendizaje) |
+| 2:45–3:30 | **Resultados y experimentos** (10 pts) | C2 / C1 | Curvas, accuracy, matriz de confusión; los dos experimentos y su efecto |
+| 3:30–4:20 | **Prueba en vivo** (25 pts) | F2 | 5 imágenes de prueba, **sin cortes**, comentando cada respuesta |
+| 4:20–5:00 | **Análisis** | C2 / F1 | Qué par confunde, por qué, cuándo usarlo y cuándo no |
 
 > **Ensayar antes de grabar.** 5 minutos es muy poco; con un tiempo por bloque, el ensayo detecta
 > dónde se pasan.
@@ -540,6 +539,51 @@ Hablan los cuatro. El código es lo que más pesa (35 pts): darle la mayor parte
 8. ¿Qué cambió en cada experimento y qué efecto tuvo?
 9. ¿Por qué un 33 % no es un resultado en tres clases?
 10. ¿En qué situación no usarían este clasificador?
+
+### 7.5 Guion de partida (borrador para leer y ajustar)
+
+> Es un **borrador**: lo que va entre `[corchetes]` se llena con lo real, y **nada de lo que dice
+> sobre resultados está inventado** (son huecos hasta que haya corridas). Ritmo de referencia: unas
+> **145 palabras por minuto**; 5 minutos son ~720 palabras. Cada quien debe **reescribirlo con sus
+> palabras**: leído de corrido suena a lectura, y a los cuatro se les puede preguntar por todo el código.
+
+**Bloque 1 · 0:00–0:45 · F1 y F2 — introducción y conjunto de imágenes** _(~86 palabras)_
+
+**F1:** «Somos [nombres]. Hicimos el proceso completo de la clase —datos, modelo y evaluación— pero con fotos propias: nuestro clasificador distingue **[objeto 1], [objeto 2] y [objeto 3]**.»
+
+**F2** _(mostrando las carpetas y abriendo varias imágenes de cada una)_: «Tenemos **60 fotos por objeto** para entrenar, 180 en total, y **10 por objeto de prueba** tomadas en otro lugar y con otra luz. Variamos a propósito el fondo, la luz, la distancia y el ángulo [mostrar un ejemplo de cada uno]. La etiqueta de cada foto es el nombre de su carpeta, y las reducimos a 256 píxeles comprobando que se ven igual.»
+
+**Bloque 2 · 0:45–1:45 · C1 — datos y `DataBlock`** _(~122 palabras)_
+
+«El `DataBlock` es la receta de los datos: entra una imagen, sale una categoría, y **la etiqueta es el nombre de la carpeta**. Separamos 80 % para entrenar y 20 % para validar; la validación **nunca se usa para aprender**, porque si midiéramos con las mismas fotos mediríamos memorización. El `seed` hace el sorteo repetible.
+
+Además aplicamos **aumento de datos** —giros, zoom, cambios de luz—: con solo 144 fotos de entrenamiento le da variedad al modelo; sin él vería siempre las mismas. Antes de entrenar miramos un lote con `show_batch` para comprobar que las etiquetas coinciden.
+
+Un cambio frente a la clase: lote de **16**, no 32. Con 144 imágenes, 32 daba solo 4 ajustes por época y el modelo no aprendía.» _(**Verificar antes de decirlo:** eso se observó con datos sustitutos; comprobarlo con una corrida de las fotos reales, EPOCAS = 12 y BS = 32, y decir lo que realmente salga.)_
+
+**Bloque 3 · 1:45–2:45 · C2 — la red y el entrenamiento** _(~106 palabras)_
+
+«La red es una CNN de cuatro capas iguales. `Conv2d` aplica filtros de 3×3 que buscan patrones; nadie les dice qué buscar, empiezan aleatorios. `BatchNorm2d` reescala para estabilizar el entrenamiento. `ReLU` anula los negativos; sin ella, apilar capas valdría lo mismo que una sola. `MaxPool2d` reduce la imagen a la mitad. La resolución baja de 128 a 8 y los filtros suben de 3 a 128; al final, una capa lineal da **una puntuación por cada objeto**.
+
+Entrenamos con `Learner`, entropía cruzada y **30 épocas** —recorridos completos de las fotos— con tasa de aprendizaje de 3e-3, que es cuánto se mueven los parámetros en cada ajuste.»
+
+**Bloque 4 · 2:45–3:30 · C2 y C1 — resultados y experimentos** _(~71 palabras)_
+
+**C2:** «Accuracy de validación **[X %]**, de prueba **[Y %]**; con tres clases el azar da 33 %. En la matriz de confusión las filas son la clase real y las columnas la predicha; fuera de la diagonal están los errores.»
+
+**C1:** «Hicimos dos experimentos cambiando **una sola cosa** cada vez, desde la misma base: **[cambio 1]**, de [X] a [Z]; **[cambio 2]**, de [X] a [W]. Repetimos cada corrida [2–3] veces. Aprendimos que [conclusión].»
+
+**Bloque 5 · 3:30–4:20 · F2 — prueba en vivo** _(~40 palabras)_
+
+«Ahora la prueba en vivo: **cinco fotos de prueba**, que el modelo nunca vio, sin cortes.» _(Ejecutar la celda y comentar cada una, sin repetir si falla):_ «Real: **[objeto]**; el modelo responde **[objeto]** con **[N %]** de seguridad: [acertó / se equivocó].» _(Si hay un error:)_ «Aquí confundió **[A]** con **[B]**; lo dejamos porque sirve para el análisis.»
+
+**Bloque 6 · 4:20–5:00 · C2 y F1 — análisis** _(~41 palabras)_
+
+**C2:** «El par más confundido es **[A] con [B]**, posiblemente porque [razón concreta]. Lo comprobamos en los errores de mayor confianza (`plot_top_losses`): [qué se vio].»
+
+**F1:** «Lo usaríamos para [situación de bajo riesgo]; **no** para [situación grave], porque solo vio [N] fotos por objeto, en nuestras condiciones. Gracias.»
+
+_Total ~466 palabras. Ojo: la prueba en vivo y mostrar gráficos/carpetas llevan tiempo sin hablar, por eso el guion no llena los 5 minutos completos._
 
 ---
 
