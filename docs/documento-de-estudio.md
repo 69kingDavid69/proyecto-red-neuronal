@@ -120,7 +120,15 @@ del enunciado (`img.thumbnail((256, 256))`, JPG calidad 85) y **abrir una origin
 lado a lado** para comprobar que se ven equivalentes. Luego subir a Drive y apuntar `CARPETA` a la
 carpeta de entrenamiento.
 
-### 2.6 Lista de verificación
+### 2.6 Verificar el conjunto con el script
+Antes de subir a Drive, correr `python3 scripts/verificar_fotos.py fotos` (necesita `pip install pillow`).
+Detecta fotos dañadas, **fotos repetidas entre entrenamiento y prueba** (eso infla el accuracy),
+cantidades distintas de 60/10, fotos muy pequeñas o borrosas, poca variación de luz y un posible
+**atajo del fondo** (si el borde de las fotos separa las clases, el modelo puede aprender el fondo
+en vez del objeto). Guarda hojas de contacto en `fotos_revision/` para mirar la variedad a ojo.
+Los avisos son heurísticos: son una pista, no un veredicto.
+
+### 2.7 Lista de verificación
 
 - [ ] 60 fotos por objeto en entrenamiento (180 en total)
 - [ ] 10 fotos por objeto en prueba, tomadas en condiciones distintas (30 en total)
@@ -636,6 +644,17 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
   imágenes con su predicción. Probado en CPU/Mac, **no en Colab con GPU**.
 - **Límite:** los datos sustitutos son renders limpios; con fotos reales (fondos, luz) el accuracy
   será menor y el efecto de cada experimento puede cambiar.
+
+### 2026-10-23 — Verificador de fotos
+- Se escribió `scripts/verificar_fotos.py` (solo requiere Pillow) y se documentó en el README y en 2.6.
+- **Verificación:** con el conjunto limpio de ensayo (60/10 por clase de manos sintéticas) no da avisos.
+  Con una copia a la que se le inyectaron fallos conocidos detectó: una imagen dañada, una foto de
+  entrenamiento colada en prueba, una foto repetida dentro de entrenamiento, cantidades distintas de
+  las pedidas, una foto de 60 px, una foto borrosa y el fondo distinto de una clase (7 de 7).
+- **Ajuste:** el umbral de «borrosa» empezó en 0,35 de la mediana y no detectó la foto borrosa
+  (estaba en 0,52); se subió a 0,55 calibrando con el conjunto limpio (mínimos de 0,62 o más).
+- **Límite:** esa calibración es con renders limpios. Con fotos de celular puede dar falsos avisos o
+  dejar pasar fotos mediocres: por eso siempre imprime las 3 menos nítidas de cada clase para mirarlas.
 
 ---
 

@@ -11,6 +11,8 @@ con el celular**.
 |---|---|
 | `proyecto_clasificador.pdf` / `.tex` | Enunciado del proyecto (fuente en LaTeX y PDF compilado). |
 | `clase_clasificacion_imagenes.ipynb` | Notebook de la clase (piedra, papel o tijera con fastai/PyTorch). Es la base que vamos a reutilizar cambiando las imágenes. |
+| `clasificador_propio.ipynb` | Notebook adaptado a nuestras fotos (carpetas como variables, parámetros de los experimentos arriba, prueba en vivo). |
+| `scripts/verificar_fotos.py` | Revisa el conjunto de fotos antes de entrenar: cantidades, fotos dañadas o repetidas, borrosas, y si el fondo delata la clase. |
 | `docs/documento-de-estudio.md` | Documento vivo del equipo: reparto de tareas, protocolo de fotos, explicación del código celda por celda, experimentos, guion del video, calendario y bitácora. |
 
 Lo que **no** se sube (ver `.gitignore`): los datos de ejemplo de la clase, la
@@ -52,10 +54,30 @@ El accuracy no da puntos por sí mismo: se evalúa el razonamiento.
 
 ## Cómo trabajar
 
-1. Abrir el notebook en Google Colab con GPU activada.
-2. Subir las fotos reducidas (el anexo del enunciado trae el script con PIL
-   que las baja a 256 px) y apuntar `CARPETA` a la carpeta con las tres clases.
-3. Entrenar, evaluar y registrar los experimentos.
+### 1. Revisar las fotos antes de subirlas
+Con las fotos en una carpeta `fotos/` (`entrenamiento/<objeto>/` y `prueba/<objeto>/`):
+
+```bash
+pip install pillow
+python3 scripts/verificar_fotos.py fotos
+```
+
+Avisa de cantidades distintas de 60 y 10 por objeto, fotos dañadas, repetidas (sobre todo entre
+entrenamiento y prueba), muy pequeñas o borrosas, poca variación de luz y un posible «atajo del
+fondo». También guarda hojas de contacto en `fotos_revision/` para mirar la variedad a ojo. Los
+avisos son heurísticos: son una pista para mirar, no un veredicto.
+
+### 2. Abrir el notebook en Colab
+1. Subir la carpeta `fotos/` a Google Drive.
+2. En Colab: *Archivo → Abrir cuaderno → GitHub* y pegar `69kingDavid69/proyecto-red-neuronal`
+   (el repo es privado: Colab pide autorizar el acceso a GitHub con la cuenta que tenga acceso).
+   Alternativa: descargar `clasificador_propio.ipynb` y subirlo a Colab.
+3. *Entorno de ejecución → Cambiar tipo de entorno de ejecución → T4 GPU*.
+4. Ajustar las celdas marcadas **⚙ PARÁMETROS** (nombres de objetos y rutas) y ejecutar en orden.
+
+### 3. Entrenar y registrar
+Entrenar, evaluar y anotar los resultados y los dos experimentos en `docs/documento-de-estudio.md`
+(secciones 5 y 6 y la bitácora).
 
 ## Equipo
 

@@ -12,7 +12,9 @@ refALEX-NET.pdf
 # Entregas: el video final no va en git
 ENTREGAS/
 
-# Fotos propias del proyecto (originales y reducidas)
+# Fotos propias del proyecto (originales, reducidas y hojas de contacto): pesan y no se entregan
+fotos/
+fotos_revision/
 imagenes/
 mis_fotos/
 
