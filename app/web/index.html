@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clasificador de objetos</title>
+<link rel="stylesheet" href="/estilos.css">
+</head>
+<body>
+
+<!-- Tinta irregular para el sello (filtro SVG reutilizable) y los tres iconos de objeto -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="tinta" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="ruido"/>
+      <feColorMatrix in="ruido" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2 2.25" result="huecos"/>
+      <feComposite in="SourceGraphic" in2="huecos" operator="in" result="gastado"/>
+      <feDisplacementMap in="gastado" in2="ruido" scale="1.6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <symbol id="i-lapiz" viewBox="0 0 48 48">
+      <path d="M10 38 L12 31 L33 10 a3 3 0 0 1 4 0 l1 1 a3 3 0 0 1 0 4 L17 36 Z M30 13 l5 5 M12 31 l5 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M10 38 l2-7 l5 5 Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-borrador" viewBox="0 0 48 48">
+      <path d="M8 29 L24 13 a3 3 0 0 1 4 0 l8 8 a3 3 0 0 1 0 4 L25 36 H15 Z M18 23 l10 10 M25 36 H40" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-sacapuntas" viewBox="0 0 48 48">
+      <path d="M8 18 H34 a6 6 0 0 1 6 6 v6 a4 4 0 0 1-4 4 H12 a4 4 0 0 1-4-4 Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
+      <circle cx="19" cy="26" r="4.2" fill="none" stroke="currentColor" stroke-width="2.6"/>
+      <path d="M28 22 l7 4" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="cabecera">
+  <div class="titulo">
+    <h1>Clasificador de objetos</h1>
+    <p>¿Es un lápiz, un borrador o un sacapuntas?</p>
+  </div>
+
+  <fieldset class="modelo" id="selector-modelo">
+    <legend class="solo-lectores">Modelo</legend>
+    <label><input type="radio" name="modelo" value="propia" checked><span>Red propia</span></label>
+    <label><input type="radio" name="modelo" value="preentrenada"><span>Preentrenada</span></label>
+    <label><input type="radio" name="modelo" value="comparar"><span>Comparar</span></label>
+  </fieldset>
+</header>
+
+<p class="aviso-modelo" id="aviso-modelo" role="status" hidden></p>
+
+<nav class="pestanas" aria-label="Secciones">
+  <button class="pestana" id="p-una" role="tab" aria-selected="true" aria-controls="v-una">Una foto</button>
+  <button class="pestana" id="p-vivo" role="tab" aria-selected="false" aria-controls="v-vivo" tabindex="-1">Prueba en vivo</button>
+  <button class="pestana" id="p-eval" role="tab" aria-selected="false" aria-controls="v-eval" tabindex="-1">Evaluación completa</button>
+</nav>
+
+<main>
+  <!-- ===== Una foto ===== -->
+  <section id="v-una" class="vista" aria-labelledby="p-una">
+    <div class="una">
+      <div class="mesa">
+        <div class="zona" id="zona" tabindex="0" role="button" aria-label="Elegir una foto o arrastrarla aquí">
+          <img id="vista-previa" alt="" hidden>
+          <div class="zona-vacia" id="zona-vacia">
+            <span class="iconos" aria-hidden="true">
+              <svg><use href="#i-lapiz"/></svg><svg><use href="#i-borrador"/></svg><svg><use href="#i-sacapuntas"/></svg>
+            </span>
+            <strong>Arrastra una foto aquí</strong>
+            <span>o haz clic para elegirla</span>
+          </div>
+          <video id="video" playsinline muted hidden></video>
+        </div>
+        <input type="file" id="archivo" accept="image/*" hidden>
+        <div class="acciones" id="acciones-foto">
+          <button class="boton" id="b-elegir">Elegir foto</button>
+          <button class="boton secundario" id="b-camara">Usar la cámara</button>
+        </div>
+        <div class="acciones" id="acciones-camara" hidden>
+          <button class="boton" id="b-tomar">Tomar foto</button>
+          <button class="boton secundario" id="b-cancelar-camara">Cancelar</button>
+        </div>
+      </div>
+
+      <div class="resultado" id="resultado" aria-live="polite">
+        <div class="vacio" id="vacio">
+          <p><strong>Aún no hay resultado.</strong></p>
+          <p>Sube una foto de un lápiz, un borrador o un sacapuntas y mira qué cree el modelo.</p>
+        </div>
+        <div id="resultados-modelos"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Prueba en vivo ===== -->
+  <section id="v-vivo" class="vista" aria-labelledby="p-vivo" hidden>
+    <div class="barra-vivo">
+      <p class="explica">Cinco fotos de prueba que el modelo nunca vio. Se clasifican una tras otra, sin cortes.</p>
+      <div class="acciones">
+        <button class="boton secundario" id="b-azar">Elegir otras 5</button>
+        <button class="boton" id="b-clasificar5">Clasificar las 5</button>
+      </div>
+    </div>
+    <ol class="fotos5" id="fotos5"></ol>
+    <p class="balance" id="balance" aria-live="polite"></p>
+  </section>
+
+  <!-- ===== Evaluación ===== -->
+  <section id="v-eval" class="vista" aria-labelledby="p-eval" hidden>
+    <div class="barra-vivo">
+      <p class="explica">Pasa todas las fotos de la carpeta de prueba por el modelo y cuenta aciertos y confusiones.</p>
+      <div class="acciones"><button class="boton" id="b-evaluar">Evaluar todas</button></div>
+    </div>
+    <div id="evaluacion" aria-live="polite"></div>
+  </section>
+</main>
+
+<p class="error" id="error" role="alert" hidden></p>
+
+<script src="/app.js"></script>
+</body>
+</html>

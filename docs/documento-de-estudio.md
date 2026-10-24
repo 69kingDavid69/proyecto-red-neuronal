@@ -328,6 +328,25 @@ El modelo se guardó en `modelos/modelo_objetos_preentrenado.pkl` (47 MB, ignora
 preentrenada como mejora) y cuáles son los dos experimentos. **Sugerencia:** explicar el código de la CNN propia (es lo que
 pide la rúbrica, 35 pts) y presentar la preentrenada como un experimento con su control.
 
+### 3.5 Programa para probar los modelos (`app/`)
+
+Para probar los modelos sin abrir el notebook (y para la prueba en vivo del video) hay un programa local en `app/`:
+un servidor de Python (`app/servidor.py`, solo librería estándar + fastai) y una página (`app/web/`). Se abre con
+`.venv/bin/python app/servidor.py` y luego <http://127.0.0.1:8765>. Detalle de uso y seguridad en `app/README.md`.
+
+- **Una foto:** arrastrar, pegar o tomar con la cámara; muestra el sello con la respuesta, qué tan seguro está el modelo y
+  la probabilidad de cada clase. Si ninguna pasa de 55 %, dice que **el modelo duda** en vez de afirmar.
+- **Prueba en vivo:** 5 fotos de prueba al azar, clasificadas una tras otra con acierto o error (con «Comparar», los dos modelos).
+- **Evaluación completa:** las 30 fotos de prueba, con aciertos, matriz de confusión y las fotos donde se equivoca.
+- **Diseño:** papel cuadriculado, colores de los objetos (amarillo lápiz, rosa borrador, azul acero sacapuntas) y el veredicto
+  como un **sello de goma**; claro y oscuro, y se ve bien en pantalla pequeña.
+- **Verificación:** se probó con las fotos reales y los dos modelos. La evaluación completa dio **26 de 30 (86,7 %)** para la
+  preentrenada (igual que en el notebook); la API rechaza una petición con otro `Host`, una ruta fuera de la carpeta de
+  prueba (`../../README.md`) y un archivo que no es imagen. **Limitaciones:** no se probó la cámara (el navegador del
+  entorno de pruebas no tiene una), ni en Windows; el programa usa los `.pkl` entrenados con el notebook.
+- Los modelos **no están en el repositorio** (`modelos/` está en `.gitignore`): cada integrante los genera con el notebook
+  (secciones 7 y 8) o se los pasan por Drive. Los `.pkl` usan *pickle*: cargar solo modelos del propio grupo.
+
 ---
 
 ## 4. Explicación del código, celda por celda
@@ -718,7 +737,7 @@ Entrenamos con `Learner`, entropía cruzada y **30 épocas** —recorridos compl
 
 **Bloque 5 · 3:30–4:20 · F2 — prueba en vivo** _(~40 palabras)_
 
-«Ahora la prueba en vivo: **cinco fotos de prueba**, que el modelo nunca vio, sin cortes.» _(Ejecutar la celda y comentar cada una, sin repetir si falla):_ «Real: **[objeto]**; el modelo responde **[objeto]** con **[N %]** de seguridad: [acertó / se equivocó].» _(Si hay un error:)_ «Aquí confundió **[A]** con **[B]**; lo dejamos porque sirve para el análisis.»
+«Ahora la prueba en vivo: **cinco fotos de prueba**, que el modelo nunca vio, sin cortes.» _(Se puede hacer con la celda del notebook o con la pestaña **Prueba en vivo** del programa de `app/`: elige 5 fotos al azar y las clasifica una tras otra. Decidirlo antes de grabar y no mezclar.)_ _(Ejecutar la celda y comentar cada una, sin repetir si falla):_ «Real: **[objeto]**; el modelo responde **[objeto]** con **[N %]** de seguridad: [acertó / se equivocó].» _(Si hay un error:)_ «Aquí confundió **[A]** con **[B]**; lo dejamos porque sirve para el análisis.»
 
 **Bloque 6 · 4:20–5:00 · C2 y F1 — análisis** _(~57 palabras)_
 
@@ -826,6 +845,15 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 - Se guardó `modelos/modelo_objetos_preentrenado.pkl` (ignorado por Git). `scripts/ensayo_preentrenada.py` reproduce el ensayo.
 - **Verificación:** el notebook de 47 celdas se ejecutó de punta a punta con las fotos reales (CNN propia 56,67 %,
   preentrenada 86,67 % en esa corrida) y el modelo se recargó en un proceso nuevo. Probado en CPU, **no en Colab**.
+
+### 2026-10-24 (noche) — Programa para probar los modelos
+- Se creó `app/` (servidor local + página, UI/UX con tema de papelería y sello de goma); ver 3.5 y `app/README.md`.
+  Se creó un `.venv` en el proyecto (ignorado por Git) con fastai para ejecutarlo.
+- **Errores propios corregidos al probarlo:** los botones ocultos seguían visibles (`display:flex` anulaba `hidden`), el
+  balance de la prueba en vivo imprimía «null», los nombres de las barras salían cortados y los sellos pequeños se salían
+  de la tarjeta en modo «Comparar». Todos se vieron en capturas y se corrigieron.
+- **Verificación:** una foto, prueba en vivo con comparación, evaluación completa (26 de 30), tema oscuro y ancho de celular
+  (sin desplazamiento horizontal). **No se probó la cámara.**
 
 ---
 

@@ -12,6 +12,7 @@ con el celular**.
 | `proyecto_clasificador.pdf` / `.tex` | Enunciado del proyecto (fuente en LaTeX y PDF compilado). |
 | `clase_clasificacion_imagenes.ipynb` | Notebook de la clase (piedra, papel o tijera con fastai/PyTorch). Es la base que vamos a reutilizar cambiando las imágenes. |
 | `clasificador_propio.ipynb` | Notebook adaptado a nuestras fotos (carpetas como variables, parámetros de los experimentos arriba, prueba en vivo). |
+| `app/` | **Programa para probar los modelos** desde el navegador: una foto, prueba en vivo con 5 fotos y evaluación completa (ver `app/README.md`). |
 | `scripts/verificar_fotos.py` | Revisa el conjunto de fotos antes de entrenar: cantidades, fotos dañadas o repetidas, borrosas, y si el fondo delata la clase. |
 | `docs/documento-de-estudio.md` | Documento vivo del equipo: reparto de tareas, protocolo de fotos, explicación del código celda por celda, experimentos, guion del video, calendario y bitácora. |
 

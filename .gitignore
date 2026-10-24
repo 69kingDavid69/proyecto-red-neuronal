@@ -31,3 +31,6 @@ __pycache__/
 # Modelos entrenados (se regeneran; pesan y usan pickle)
 modelos/
 *.pkl
+
+# Entorno virtual local
+.venv/
