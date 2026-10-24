@@ -147,7 +147,7 @@ Los avisos son heurísticos: son una pista, no un veredicto.
 - **Ya está listo el notebook adaptado: `clasificador_propio.ipynb`.** Parte del de clase
   (`clase_clasificacion_imagenes.ipynb`) con estos cambios: sin la descarga de `rps.zip`; las carpetas
   son variables (`CARPETA_ENTRENAMIENTO`, `CARPETA_PRUEBA`); una celda opcional para montar Drive y
-  otra para reducir las fotos; los valores de los experimentos arriba (`USAR_AUMENTO`, `BS`, `EPOCAS`,
+  otra para reducir las fotos; los valores de los experimentos arriba (`AUMENTO`, `BS`, `EPOCAS`,
   `TASA`); matriz de confusión sobre las fotos de **prueba**; y una celda de **prueba en vivo** (5
   imágenes con su predicción y qué tan seguro estaba). Las celdas marcadas **⚙ PARÁMETROS** son las
   únicas que se tocan.
@@ -319,6 +319,8 @@ fotos, la misma partición y el mismo aumento (*fine-tuning*: 3 épocas con el r
   AlexNet), y solo aprende a combinarlos para nuestros tres objetos.
 - **Cuidado al explicarlo:** cambiar a resnet18 preentrenada cambia **varias cosas a la vez** (arquitectura, pesos de partida y
   resolución). La comparación limpia «una sola cosa» es la del control: **misma resnet18, solo preentrenada o no.**
+
+_(Con 5 semillas, sección 5: preentrenada 0,98 y 0,90; sin preentrenar 0,55 y 0,55. Las cifras de esta sección son de 3 semillas.)_
 
 **En el notebook** (sección 8) una corrida dio **86,67 % en prueba** (26 de 30); los 4 errores fueron borrador ↔ sacapuntas
 (2 y 2), y el lápiz no falló. La media de las 3 corridas del ensayo es 0,92: **una sola corrida puede dar 0,87 o 0,97.**
@@ -607,48 +609,105 @@ error, acierto = learn.validate(dl=prueba)
 
 ## 5. Experimentos (dos modificaciones, **una sola cosa a la vez**)
 
-Regla del enunciado: modificar **una sola cosa**, reentrenar y registrar el efecto sobre el accuracy.
-Hacer **dos modificaciones distintas, no al mismo tiempo**. Cambiar una pieza a la vez es lo que
-permite saber *cuál* causó el cambio.
+Regla del enunciado: modificar **una sola cosa**, reentrenar y registrar el efecto sobre el accuracy; **dos
+modificaciones distintas, no al mismo tiempo.** Cambiar una pieza a la vez es lo que permite saber *cuál* causó el cambio.
 
-Ideas (elegir dos; cada una conecta con algo del código que ya habrá que explicar):
+**Cómo se hicieron.** Cada experimento parte de una base, cambia **una** variable, y se **repite con 5 semillas**
+(0 a 4: cambian el sorteo de los pesos iniciales y del aumento; la partición entrenamiento/validación es la misma). Se
+reporta la **media y el rango** (mínimo–máximo), no una corrida suelta. Todo lo ejecuta `scripts/experimentos_oficiales.py`
+y las 25 corridas están en `docs/resultados/experimentos.csv`. En el notebook cada experimento es **una sola línea**:
+`AUMENTO` (celda del `DataBlock`) y `pretrained=True/False` (sección 8).
 
-| Idea | Qué se cambia | Qué se espera aprender |
+> **Estos números son del ensayo local** (Mac, CPU, sus fotos). Hay que **repetirlos en Colab** y usar esas cifras en el
+> video: pueden variar unos puntos. Lo que no debería cambiar es la **conclusión cualitativa**.
+
+### Experimento A: la misma resnet18, con y sin pesos preentrenados
+
+- **Qué cambia:** solo el punto de partida de los pesos (`pretrained=False` frente a `pretrained=True`). Todo lo demás
+  igual: resnet18, 224 px, `pad`, mismo aumento, 3 épocas con el resto congelado y 10 ajustando todo, lote 16.
+- **Hipótesis:** con 144 fotos no alcanza para aprender a ver desde cero, pero una red que ya vio ImageNet solo debe
+  aprender a combinar lo que ya detecta.
+
+| Configuración (5 corridas) | Validación: media (rango) | Prueba: media (rango) |
 |---|---|---|
-| Sin aumento de datos (`USAR_AUMENTO = False`) | quitar `aug_transforms` | cuánto aporta el aumento con pocas imágenes (ensayo sustituto: bajó la prueba ~0,93 → ~0,86; **fotos reales: no hubo diferencia apreciable**) |
-| Más/menos épocas (`EPOCAS`) o lote (`BS`) | p. ej. `EPOCAS = 12` o `BS = 32` | ver el fallo de la sección 3.1 y explicar **por qué** pasa |
-| Otra tasa de aprendizaje (`TASA`) | `3e-3` → `1e-2` o `1e-3` | sensibilidad a la tasa (ensayo sustituto y fotos reales: `1e-2` fue parecida a la base) |
-| Más filtros o una capa más | `capa(…)` en `crear_red` | si más capacidad ayuda con tan pocos datos |
-| Redimensionado (`REDIMENSION`) | `"pad"` ↔ `"crop"` ↔ `"squish"` | si recortar un lápiz de 6:1 perjudica; en el ensayo real la diferencia no se pudo distinguir del ruido |
-| Sin `BatchNorm2d` | quitar esa línea de `capa` | efecto sobre la estabilidad del entrenamiento |
+| resnet18 **sin** preentrenar (base) | 0,55 (0,42–0,67) | 0,55 (0,47–0,57) |
+| resnet18 **preentrenada** | **0,98** (0,94–1,00) | **0,90** (0,87–0,97) |
 
-> **Cuidado con la regla «una sola cosa a la vez».** Los valores base del notebook (`BS = 16`,
-> `EPOCAS = 30`) ya difieren de la clase. Cada experimento parte de **esa base** y cambia **una**
-> variable. Repetir cada corrida 2–3 veces: una sola puede engañar.
+- **Resultado:** el preentrenamiento sube la prueba **35 puntos**, y los rangos **no se tocan** (el mejor sin preentrenar,
+  0,57, queda por debajo del peor preentrenado, 0,87). Con este margen sí se puede afirmar el efecto.
+- **Observación sin explicar:** sin preentrenar, la prueba da **0,57 en 4 de 5 corridas**; no se analizó por qué.
+- **Conclusión:** el preentrenamiento **es** lo que produce la mejora. Sin él, resnet18 queda al nivel de nuestra red
+  propia (~0,55–0,60 en prueba) aunque tenga 11 millones de parámetros.
+- **Lo que no se probó:** si la mejora se debe a las primeras capas (bordes, texturas) o a las últimas; ni qué pasa con
+  otro tipo de objetos.
 
-**Propuesta con la red preentrenada (3.4):** la comparación más limpia es **resnet18 con y sin preentrenar** (solo cambia el
-punto de partida: 0,57 → 0,92 en prueba). Se puede usar como uno de los dos experimentos.
+### Experimento B: aumento de datos en la red propia (ninguno, normal, fuerte)
 
-**Propuesta (el grupo decide):** A = **aumento de datos fuerte** (cuenta una historia clara: baja la validación y no la prueba)
-y B = ***dropout* 0,3** (la mejor prueba, 0,65). Ambos son un solo cambio sobre la base y se explican con lo que ya se
-estudia en el código. **Repetir cada uno 3 veces y comparar por la media** (sección 3.3).
+- **Qué cambia:** solo el aumento de datos (`AUMENTO`). Base: **normal** (giros hasta 10°, zoom hasta 1,1, luz 0,2, deformación 0,2 y volteo
+  horizontal). **Fuerte:** giros 30°, zoom 1,4, luz 0,5, deformación 0,3 y volteo vertical. **Ninguno:** sin transformaciones.
+  La red propia, 30 épocas, lote 16, `pad`, 128 px, igual en los tres.
+- **Hipótesis:** con 144 fotos, más variedad artificial debería ayudar a generalizar a las fotos de prueba.
 
-**Experimentos elegidos:** A (C1): _(pendiente)_ · B (C2): _(pendiente)_
+| Configuración (5 corridas) | Validación: media (rango) | Prueba: media (rango) |
+|---|---|---|
+| Aumento **normal** (base) | 0,72 (0,67–0,75) | 0,60 (0,57–0,63) |
+| Aumento **fuerte** | 0,56 (0,50–0,58) | 0,63 (0,60–0,67) |
+| **Sin** aumento | 0,73 (0,72–0,78) | 0,59 (0,57–0,63) |
+
+- **Sin aumento ≈ base** (0,73 y 0,59 contra 0,72 y 0,60): con estos datos y estos ajustes, **el aumento normal no aporta
+  nada medible.** La hipótesis no se cumplió.
+- **El aumento fuerte baja la validación 16 puntos** (los rangos no se tocan: 0,50–0,58 contra 0,67–0,75). Eso sí es un
+  efecto real. _Explicación posible, sin comprobar:_ la red de 4 capas no alcanza a ajustar tanta variación en 30 épocas
+  (se podría confirmar mirando el error de entrenamiento).
+- **En la prueba, el aumento fuerte sube 3 puntos** (0,63 contra 0,60), pero los rangos se solapan (0,60–0,67 y
+  0,57–0,63) y comparando semilla por semilla 3 de 5 suben, 1 queda igual y 1 baja: **no es concluyente.** Con 30 fotos de
+  prueba, una foto son 3,3 puntos.
+- **Conclusión honesta:** el aumento de datos **no resolvió** el problema de fondo (la red propia topa en ~0,60 en prueba).
+  Que un experimento no mejore **también es un resultado**, y es lo que el enunciado pide explicar.
+
+### Otras ideas probadas antes (una sola corrida de 3 semillas, sección 3.3 y 3.2)
+
+Resolución 192 px, red más ancha, red de 5 capas, *dropout* 0,3, *weight decay* 0,1, más épocas, otra tasa de aprendizaje y
+otro redimensionado: ninguna mejoró de forma clara la red propia. No se eligieron como experimentos por eso.
+
+**Qué decir en el video (por experimento):** qué se cambió y en qué línea; las cifras **del Colab del grupo** (media de varias
+corridas, no una sola); y una explicación **propia** de por qué pasó. Si el resultado no es el esperado, **mostrarlo igual.**
 
 ---
 
-## 6. Resultados (rellenar a medida que se obtengan)
+## 6. Resultados
 
-| Corrida | Qué se cambió | Épocas | Accuracy validación | Accuracy prueba | Observaciones |
-|---|---|---|---|---|---|
-| Base | nada | 12 | | | |
-| Experimento A | | | | | |
-| Experimento B | | | | | |
+**Del ensayo local (5 corridas por configuración; reemplazar con las cifras del Colab del grupo):**
 
-**Matriz de confusión (base):** _(pegar o describir)_
-**Par de objetos más confundido:** _(pendiente)_
-**Por qué creemos que ocurre:** _(pendiente)_
-**En qué situación usaríamos / no usaríamos este clasificador:** _(pendiente)_
+| Configuración | Qué se cambió | Validación: media (rango) | Prueba: media (rango) | Observaciones |
+|---|---|---|---|---|
+| Base: red propia | nada (aumento normal, 30 épocas, lote 16, `pad`, 128 px) | 0,72 (0,67–0,75) | 0,60 (0,57–0,63) | punto de partida |
+| Experimento B | aumento **fuerte** | 0,56 (0,50–0,58) | 0,63 (0,60–0,67) | validación baja; prueba igual |
+| Experimento B | **sin** aumento | 0,73 (0,72–0,78) | 0,59 (0,57–0,63) | igual que la base |
+| Base de A: resnet18 | pesos aleatorios, 224 px | 0,55 (0,42–0,67) | 0,55 (0,47–0,57) | como la red propia |
+| Experimento A | **preentrenada** | 0,98 (0,94–1,00) | 0,90 (0,87–0,97) | la mejora clara |
+
+**Matriz de confusión de una corrida** (modelo guardado `modelo_objetos_base.pkl`, red propia, 16 de 30 aciertos; filas =
+clase real, columnas = respuesta):
+
+| Real ↓ · Respondió → | Lápiz | Borrador | Sacapuntas |
+|---|---|---|---|
+| Lápiz | **7** | 3 | 0 |
+| Borrador | 1 | **5** | 4 |
+| Sacapuntas | 0 | 6 | **4** |
+
+Con la resnet18 preentrenada (una corrida, 26 de 30): lápiz 10/10, borrador 8/10 y sacapuntas 8/10; los 4 errores son
+**borrador ↔ sacapuntas**.
+
+**Par de objetos más confundido:** **sacapuntas ↔ borrador**, en los dos modelos.
+**Por qué creemos que ocurre** _(hipótesis; confirmar con `plot_top_losses` en el Colab del grupo)_: varias fotos de prueba
+muestran un sacapuntas **pequeño, lejos y sobre un piso gris** (`rsp_test_saca_2`, `_3` y `_5`), algo casi ausente en el
+entrenamiento, que tiene sobre todo primeros planos; además, tres errores del borrador son la misma pieza amarillenta
+sobre una tela oscura, en fotos casi iguales. Es un cambio de condiciones entre entrenamiento y prueba, que el enunciado pide.
+**En qué situación usaríamos / no usaríamos este clasificador** _(borrador de respuesta, que el grupo debe reescribir)_: lo
+usaríamos para ordenar fotos de útiles de escritorio vistos de cerca y con fondos parecidos a los del entrenamiento, donde un
+error no cuesta. **No** lo usaríamos para una decisión donde el error importe, ni con objetos lejanos, de otras marcas o
+con otra luz, porque solo vio 60 fotos por objeto y en nuestras condiciones.
 
 ---
 
@@ -731,9 +790,9 @@ Entrenamos con `Learner`, entropía cruzada y **30 épocas** —recorridos compl
 
 **Bloque 4 · 2:45–3:30 · C2 y C1 — resultados y experimento** _(~115 palabras)_
 
-**C2:** «Nuestra red llegó a **[X %]** en validación y **[Y %]** en prueba; con tres clases el azar da 33 %. En la matriz de confusión las filas son la clase real y las columnas la predicha; fuera de la diagonal están los errores.»
+**C2:** «Nuestra red llegó a **[X %]** en validación y **[Y %]** en prueba; el azar da 33 %. En la matriz de confusión las filas son la clase real y las columnas la predicha.»
 
-**C1:** «Como experimento usamos una **red preentrenada**, resnet18, que ya aprendió a ver con más de un millón de fotos de ImageNet, y la ajustamos a nuestros tres objetos: subió a **[Z %]** en prueba. Para saber si la mejora venía del preentrenamiento, entrenamos **la misma resnet18 con pesos aleatorios** y se quedó en **[W %]**. Con 144 fotos no alcanza para aprender a ver desde cero; la preentrenada ya trae bordes y formas.»
+**C1:** «Hicimos dos experimentos, cambiando **una sola cosa** cada uno. **A:** la misma resnet18, con y sin preentrenar: **[W %]** contra **[Z %]** en prueba; con 144 fotos no alcanza para aprender a ver desde cero. **B:** aumento de datos fuerte en nuestra red: la validación bajó a **[V %]** y la prueba quedó en **[U %]**, casi igual; [conclusión propia].» _(Referencia del ensayo local, 5 corridas: A 0,55 → 0,90 en prueba; B validación 0,72 → 0,56 y prueba 0,60 → 0,63. **Usar las cifras del Colab del grupo.**)_
 
 **Bloque 5 · 3:30–4:20 · F2 — prueba en vivo** _(~40 palabras)_
 
@@ -854,6 +913,15 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
   de la tarjeta en modo «Comparar». Todos se vieron en capturas y se corrigieron.
 - **Verificación:** una foto, prueba en vivo con comparación, evaluación completa (26 de 30), tema oscuro y ancho de celular
   (sin desplazamiento horizontal). **No se probó la cámara.**
+
+### 2026-10-24 (madrugada del 25) — Los dos experimentos, con 5 semillas
+- Se escribió `scripts/experimentos_oficiales.py` y se corrieron **25 corridas** (resultados en `docs/resultados/experimentos.csv`).
+  **A:** resnet18 con y sin preentrenar: prueba 0,55 → 0,90 (rangos que no se tocan). **B:** aumento de datos ninguno / normal / fuerte
+  en la red propia: sin aumento ≈ base; fuerte baja la validación 16 puntos y la prueba sube 3, no concluyente. Detalle en la sección 5.
+- **Cambio en el notebook:** el parámetro `USAR_AUMENTO` (sí/no) pasó a `AUMENTO = "ninguno" | "normal" | "fuerte"`, para poder hacer el
+  experimento B con una sola línea.
+- **Corrección de una cifra:** con 3 semillas la preentrenada daba 0,92 en prueba; con 5 da 0,90. Se dejó nota en 3.4.
+- **Pendiente:** repetir los dos experimentos en Colab y usar esas cifras en el video; este ensayo es en CPU.
 
 ---
 

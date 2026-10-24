@@ -1,0 +1,26 @@
+experimento,configuracion,semilla,validacion,prueba,segundos
+B,"Red propia, aumento normal (base)",0,0.7222,0.5667,16
+B,"Red propia, aumento normal (base)",1,0.7222,0.6333,14
+B,"Red propia, aumento normal (base)",2,0.75,0.6,14
+B,"Red propia, aumento normal (base)",3,0.6667,0.6333,16
+B,"Red propia, aumento normal (base)",4,0.75,0.5667,15
+B,"Red propia, aumento fuerte",0,0.5833,0.6333,15
+B,"Red propia, aumento fuerte",1,0.5,0.6667,15
+B,"Red propia, aumento fuerte",2,0.5833,0.6,15
+B,"Red propia, aumento fuerte",3,0.5833,0.6,15
+B,"Red propia, aumento fuerte",4,0.5556,0.6667,14
+B,"Red propia, sin aumento",0,0.7222,0.5667,11
+B,"Red propia, sin aumento",1,0.7222,0.6333,12
+B,"Red propia, sin aumento",2,0.7222,0.6,12
+B,"Red propia, sin aumento",3,0.7778,0.6,11
+B,"Red propia, sin aumento",4,0.7222,0.5667,11
+A,resnet18 SIN preentrenar (base),0,0.4167,0.5667,29
+A,resnet18 SIN preentrenar (base),1,0.5,0.5667,28
+A,resnet18 SIN preentrenar (base),2,0.5833,0.5667,31
+A,resnet18 SIN preentrenar (base),3,0.6667,0.4667,31
+A,resnet18 SIN preentrenar (base),4,0.5833,0.5667,34
+A,resnet18 preentrenada,0,0.9722,0.9333,43
+A,resnet18 preentrenada,1,0.9444,0.9667,34
+A,resnet18 preentrenada,2,1.0,0.8667,35
+A,resnet18 preentrenada,3,1.0,0.8667,41
+A,resnet18 preentrenada,4,1.0,0.8667,51
