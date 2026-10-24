@@ -293,9 +293,40 @@ Se volvió a cargar en un **proceso nuevo** y dio **53,33 % en prueba, igual que
 fiel. El notebook tiene ahora la sección 7 (guardar y cargar), con la precaución de que el `.pkl` usa *pickle* y solo se
 cargan modelos propios.
 
-**Qué falta probar** (sin evidencia todavía): una red **preentrenada** (*transfer learning*; necesita descargar los pesos),
-más fotos de las situaciones que fallan (sacapuntas lejos, lápices alargados), o juntar las fotos de prueba con las de
-entrenamiento para validar mejor.
+**Qué falta probar** (sin evidencia todavía): más fotos de las situaciones que fallan (sacapuntas lejos, lápices alargados), o juntar las fotos de prueba con las de
+entrenamiento para validar mejor. _(La red preentrenada se probó después: ver 3.4.)_
+
+### 3.4 La red preentrenada sí supera el 90 % (24/10)
+
+Con permiso del grupo se descargaron los pesos de **resnet18 preentrenada en ImageNet** (`resnet18-f37072fd.pth`,
+44,7 MB, de `download.pytorch.org`; el prefijo del nombre coincide con el hash SHA-256 del archivo) y se ajustó con las mismas
+fotos, la misma partición y el mismo aumento (*fine-tuning*: 3 épocas con el resto congelado y 10 ajustando todo).
+
+| Red | Validación (media) | Prueba (media) | Prueba, 3 corridas |
+|---|---|---|---|
+| CNN propia (base, 128 px) | 0,73 | 0,60 | 0,57 · 0,63 · 0,60 |
+| resnet18 **preentrenada**, 128 px | 0,91 | 0,80 | 0,80 · 0,83 · 0,77 |
+| resnet18 **preentrenada**, 224 px | **0,97** | **0,92** | 0,93 · 0,97 · 0,87 |
+| resnet18 **sin preentrenar** (control), 224 px | 0,50 | 0,57 | 0,57 · 0,57 · 0,57 |
+
+**Qué se concluye (con evidencia):**
+- **El preentrenamiento es lo que produce la mejora.** La misma resnet18 con los mismos 224 px, pero con pesos aleatorios,
+  se queda en 0,50 / 0,57, igual que la CNN propia; con los pesos de ImageNet pasa a 0,97 / 0,92. La diferencia (35 puntos de
+  prueba) es mucho mayor que el ruido de las corridas (~10 puntos), así que aquí sí se puede afirmar.
+- **La resolución también importa para la red preentrenada:** 128 px → 0,80 y 224 px → 0,92 (resnet18 se entrenó con 224 px).
+- **Por qué funciona (explicación, no demostrada aquí):** con solo 144 fotos no alcanza para aprender a «ver» desde cero; la red
+  preentrenada ya trae detectores de bordes, texturas y formas aprendidos con ~1,2 millones de fotos (la idea del paper de
+  AlexNet), y solo aprende a combinarlos para nuestros tres objetos.
+- **Cuidado al explicarlo:** cambiar a resnet18 preentrenada cambia **varias cosas a la vez** (arquitectura, pesos de partida y
+  resolución). La comparación limpia «una sola cosa» es la del control: **misma resnet18, solo preentrenada o no.**
+
+**En el notebook** (sección 8) una corrida dio **86,67 % en prueba** (26 de 30); los 4 errores fueron borrador ↔ sacapuntas
+(2 y 2), y el lápiz no falló. La media de las 3 corridas del ensayo es 0,92: **una sola corrida puede dar 0,87 o 0,97.**
+El modelo se guardó en `modelos/modelo_objetos_preentrenado.pkl` (47 MB, ignorado por Git) y se volvió a cargar en un proceso nuevo.
+
+**Pendiente de decidir por el grupo:** cuál es «el modelo del proyecto» (la CNN propia que se explica celda por celda, o la
+preentrenada como mejora) y cuáles son los dos experimentos. **Sugerencia:** explicar el código de la CNN propia (es lo que
+pide la rúbrica, 35 pts) y presentar la preentrenada como un experimento con su control.
 
 ---
 
@@ -576,6 +607,9 @@ Ideas (elegir dos; cada una conecta con algo del código que ya habrá que expli
 > `EPOCAS = 30`) ya difieren de la clase. Cada experimento parte de **esa base** y cambia **una**
 > variable. Repetir cada corrida 2–3 veces: una sola puede engañar.
 
+**Propuesta con la red preentrenada (3.4):** la comparación más limpia es **resnet18 con y sin preentrenar** (solo cambia el
+punto de partida: 0,57 → 0,92 en prueba). Se puede usar como uno de los dos experimentos.
+
 **Propuesta (el grupo decide):** A = **aumento de datos fuerte** (cuenta una historia clara: baja la validación y no la prueba)
 y B = ***dropout* 0,3** (la mejor prueba, 0,65). Ambos son un solo cambio sobre la base y se explican con lo que ya se
 estudia en el código. **Repetir cada uno 3 veces y comparar por la media** (sección 3.3).
@@ -781,6 +815,16 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 - **Decisión pendiente:** si se prueba una red preentrenada (requiere descargar pesos de internet).
 - **Verificación:** el notebook con las celdas nuevas se ejecutó de punta a punta con las fotos reales sin errores
   (CPU, no Colab). Las cifras de 3.3 vienen de las corridas y de los listados impresos de errores.
+
+### 2026-10-24 (tarde) — Red preentrenada
+- Con permiso del usuario se descargaron los pesos de resnet18 (44,7 MB, `download.pytorch.org`; integridad: el prefijo
+  `f37072fd` del nombre coincide con el SHA-256). Se agregó al notebook la **sección 8** (transfer learning).
+- **Resultado:** resnet18 preentrenada a 224 px: **0,97 validación y 0,92 prueba** (3 corridas; una sola dio 0,87–0,97),
+  frente a 0,73 / 0,60 de la CNN propia. El **control sin preentrenar** (misma arquitectura) dio 0,50 / 0,57: la mejora viene
+  del preentrenamiento. Detalle en 3.4.
+- Se guardó `modelos/modelo_objetos_preentrenado.pkl` (ignorado por Git). `scripts/ensayo_preentrenada.py` reproduce el ensayo.
+- **Verificación:** el notebook de 47 celdas se ejecutó de punta a punta con las fotos reales (CNN propia 56,67 %,
+  preentrenada 86,67 % en esa corrida) y el modelo se recargó en un proceso nuevo. Probado en CPU, **no en Colab**.
 
 ---
 
