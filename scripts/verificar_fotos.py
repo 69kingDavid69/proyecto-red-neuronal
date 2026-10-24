@@ -11,13 +11,13 @@ Espera esta estructura (una subcarpeta por objeto; el nombre de la carpeta es la
 Revisa (solo necesita Pillow: `pip install pillow`):
   ERRORES  - imágenes ilegibles; clases distintas entre entrenamiento y prueba; fotos idénticas
              repetidas (sobre todo entre entrenamiento y prueba: eso infla el accuracy).
-  AVISOS   - cantidades distintas de las pedidas; fotos muy pequeñas; las más borrosas de cada
-             clase; clases con poca variación de luz; y un posible «atajo del fondo» (si el fondo
+  AVISOS   - cantidades distintas de las pedidas; fotos muy pequeñas o muy alargadas; las que parecen
+             borrosas; clases con poca variación de luz; y un posible «atajo del fondo» (si el fondo
              de una clase es sistemáticamente distinto al de las otras, el modelo puede aprender
              el fondo en vez del objeto).
 Además guarda hojas de contacto (miniaturas) en <carpeta>_revision/ para mirar la variedad a ojo.
 
-Los umbrales de los avisos son heurísticos: son una pista para mirar, no un veredicto.
+Los umbrales de los avisos son heurísticos (calibrados con dos conjuntos distintos): son una pista para mirar, no un veredicto.
 """
 import argparse
 import hashlib
@@ -54,11 +54,15 @@ def abrir(ruta):
         return None
 
 
-def nitidez(img):
-    """Varianza del laplaciano a tamaño fijo: más alta = más nítida. Solo sirve para COMPARAR fotos."""
+def borrosidad(img):
+    """Índice de borrosidad en [0, 1]: cuánto detalle fino CONSERVA la foto al difuminarla un poco.
+    Una foto nítida pierde mucho detalle al difuminarla (índice bajo, ~0,1-0,5); una foto ya borrosa casi no
+    cambia (índice cercano a 1). A diferencia de medir el detalle absoluto, no depende de que el fondo sea liso."""
     g = img.convert("L")
     g.thumbnail((256, 256))
-    return ImageStat.Stat(g.filter(LAPLACIANO)).var[0]
+    antes = ImageStat.Stat(g.filter(LAPLACIANO)).var[0]
+    despues = ImageStat.Stat(g.filter(ImageFilter.GaussianBlur(1.5)).filter(LAPLACIANO)).var[0]
+    return despues / max(antes, 1e-6)
 
 
 def color_borde(img):
@@ -112,7 +116,8 @@ def main():
                 if img is None:
                     errores.append(f"Imagen ilegible o dañada: {ruta}")
                     continue
-                filas.append(dict(ruta=ruta, lado=min(img.size), nitidez=nitidez(img),
+                filas.append(dict(ruta=ruta, lado=max(img.size), proporcion=max(img.size) / max(1, min(img.size)),
+                                  borrosidad=borrosidad(img),
                                   luz=ImageStat.Stat(img.convert("L")).mean[0], borde=color_borde(img)))
             datos[split][clase] = filas
 
@@ -149,19 +154,24 @@ def main():
                     vistos[h] = dict(ruta=f["ruta"], split=split)
 
     # --- tamaño y nitidez
-    print("\n=== Las 3 fotos menos nítidas de cada clase (nitidez relativa a la mediana de la clase) ===")
+    print("\n=== Las 3 fotos con más índice de borrosidad de cada clase (cerca de 1 = borrosa; > 0,88 se avisa) ===")
     for split, clases in datos.items():
         for clase, filas in clases.items():
             for f in filas:
                 if f["lado"] < 128:
-                    avisos.append(f"Foto muy pequeña (lado menor {f['lado']} px, la red usa 128): {f['ruta']}")
-            if len(filas) >= 8:
-                med = statistics.median(f["nitidez"] for f in filas)
-                peores = sorted(filas, key=lambda f: f["nitidez"])[:3]
-                print(f"  {split}/{clase}: " + ", ".join(f"{f['ruta'].name} ({f['nitidez'] / med:.2f})" for f in peores))
+                    avisos.append(f"Foto muy pequeña (lado mayor {f['lado']} px, la red usa 128): {f['ruta']}")
+            alargadas = [f for f in filas if f["proporcion"] > 2.5]
+            if alargadas:
+                ej = ", ".join(f["ruta"].name for f in alargadas[:3])
+                avisos.append(f"{split}/{clase}: {len(alargadas)} foto(s) muy alargadas (largo/corto > 2,5; p. ej. {ej}). "
+                              "El Resize por defecto de fastai CENTRA Y RECORTA: en una foto así se pierde casi todo el objeto. "
+                              "Probar ResizeMethod.Pad o ResizeMethod.Squish, o fotografiar con encuadre más cuadrado.")
+            if filas:
+                peores = sorted(filas, key=lambda f: -f["borrosidad"])[:3]
+                print(f"  {split}/{clase}: " + ", ".join(f"{f['ruta'].name} ({f['borrosidad']:.2f})" for f in peores))
                 for f in peores:
-                    if f["nitidez"] < 0.55 * med:
-                        avisos.append(f"Posible foto borrosa (nitidez {f['nitidez'] / med:.2f} de la mediana de su clase): {f['ruta']}")
+                    if f["borrosidad"] > 0.88:
+                        avisos.append(f"Posible foto borrosa (índice {f['borrosidad']:.2f}; mirarla y descartarla si no se ve bien): {f['ruta']}")
 
     # --- variación de luz por clase
     if "entrenamiento" in datos:

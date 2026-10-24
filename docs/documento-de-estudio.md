@@ -75,7 +75,7 @@ Así el conjunto de prueba es realmente independiente y los fotógrafos no carga
 - Ejemplos del enunciado: lápiz / borrador / sacapuntas; tres frutas; llaves / audífonos /
   cargador; tres herramientas.
 
-**Objetos elegidos:** _(pendiente)_ — objeto 1: …… · objeto 2: …… · objeto 3: ……
+**Objetos elegidos:** **lápiz · borrador · sacapuntas** (carpetas `lapiz`, `borrador`, `sacapuntas`).
 
 ### 2.2 Estructura de carpetas
 La etiqueta de cada imagen es **el nombre de su carpeta**:
@@ -162,6 +162,8 @@ Los avisos son heurísticos: son una pista, no un veredicto.
 
 ### 3.1 Hallazgo importante: con la configuración de la clase el modelo falla con 180 imágenes
 
+> _Esta sección es del ensayo con **datos sustitutos** (manos sintéticas). Con las **fotos reales** (lápiz · borrador · sacapuntas) el panorama es distinto: ver 3.2._
+
 Se hizo un **ensayo con datos sustitutos** (60 imágenes por clase tomadas de las manos sintéticas de
 la clase, 10 por clase de prueba; script en `scripts/ensayo_configuraciones.py`). **No son nuestros
 datos ni nuestros resultados**: sirve para anticipar un problema, no para predecir el accuracy.
@@ -201,6 +203,58 @@ datos ni nuestros resultados**: sirve para anticipar un problema, no para predec
   reales el efecto puede ser distinto.
 - Las corridas varían entre sí (el notebook no fija semilla para el entrenamiento): un mismo
   notebook dio 93 % y 97 % en prueba. **No sacar conclusiones de una sola corrida.**
+
+### 3.2 Primera revisión y primera corrida con las fotos reales (23/10)
+
+**Qué se recibió.** Dos carpetas: entrenamiento (`rsp/`) y prueba (`rps-test-set/`), con las clases
+**Borrador, Lapiz y Sacapuntas**: **60 fotos por objeto en entrenamiento y 10 en prueba**, todas `.jpg`,
+con el lado mayor en 256 px (ya reducidas con el script del anexo). _Detalle:_ la carpeta de
+entrenamiento se llama `"Sacapuntas "` **con un espacio al final** y la de prueba `"Sacapuntas"`; para
+el modelo son dos etiquetas distintas. Se trabajó con una copia en `fotos/` con los nombres
+normalizados (`borrador`, `lapiz`, `sacapuntas`); **las carpetas originales no se tocaron.**
+
+**Revisión con `scripts/verificar_fotos.py`: 0 errores, 4 avisos.**
+- Cantidades exactas (60/60/60 y 10/10/10), sin fotos dañadas ni repetidas (ni entre entrenamiento y prueba).
+- **Variedad de luz buena** (desviación del brillo medio 26–31) y **sin atajo del fondo**: el color de los
+  bordes casi no separa las clases (razón 0,09–0,18; el aviso salta desde 1,5). Mirando las hojas de contacto del lápiz y del borrador
+  (la del sacapuntas no se revisó a ojo), hay fondos, ejemplares y encuadres muy distintos.
+- **Una foto posiblemente borrosa:** `entrenamiento/lapiz/rsp_lap_17.jpg` (índice 0,91). Mirarla; si no se ve bien, descartarla.
+- **Fotos muy alargadas:** 10 del lápiz en entrenamiento (hasta 6:1), 2 del lápiz en prueba y 1 del borrador.
+  **Problema real:** con el redimensionado por defecto (`Resize`, método *crop*) fastai **centra y recorta**, y en
+  una foto así se pierde la mayor parte del lápiz. Por eso el notebook tiene el parámetro `REDIMENSION`
+  (`"crop"`, `"pad"` o `"squish"`), con `"pad"` por defecto: conserva la foto entera con bordes negros.
+
+**Corridas (3 semillas cada una; 36 fotos de validación, 30 de prueba):**
+
+| Configuración | Accuracy validación | Accuracy prueba |
+|---|---|---|
+| Clase: 12 épocas, lote 32, *crop* | 0,53 · 0,44 · 0,53 | 0,57 · 0,50 · 0,43 |
+| 30 épocas, lote 16, *crop* | 0,69 · 0,72 · 0,69 | 0,53 · 0,63 · 0,50 |
+| 30 épocas, lote 16, ***pad*** (base del notebook) | 0,72 · 0,72 · 0,75 | 0,57 · 0,63 · 0,60 |
+| 30 épocas, lote 16, *squish* | 0,72 · 0,69 · 0,69 | 0,47 · 0,50 · 0,57 |
+| 30 épocas, lote 16, *crop*, **sin aumento** | 0,72 · 0,72 · 0,69 | 0,60 · 0,60 · 0,53 |
+| 60 épocas, lote 16, *pad* | 0,75 · 0,75 · 0,69 | 0,53 · 0,57 · 0,53 |
+| 30 épocas, lote 16, *pad*, tasa 1e-2 | 0,72 · 0,67 · 0,72 | 0,50 · 0,57 · 0,60 |
+| 100 épocas, lote 16, *pad*, tasa 1e-2 | 0,75 · 0,75 · 0,75 | 0,57 · 0,60 · 0,60 |
+
+Una corrida del notebook completo (base con `pad`) dio **56,67 % en prueba**. Los pares más confundidos
+fueron **sacapuntas → borrador (5 veces)**, **borrador → sacapuntas (3)** y **lápiz → borrador (3)**.
+
+**Qué se concluye (y qué no):**
+- **La red actual llega a ~70 % en validación y ~55–60 % en prueba**, lejos del 90 % que sugiere el enunciado
+  (el azar es 33 %). Sí aprende (con la configuración de la clase ni siquiera pasa de ~50 %).
+- **Entrenar más no ayuda:** 60 o 100 épocas o una tasa mayor dan lo mismo. El límite parece estar en los datos y en la
+  red (pocas fotos, objetos muy variados), no en el tiempo de entrenamiento.
+- **Casi todas las diferencias entre configuraciones son menores que el ruido.** Con 30 fotos de prueba, una sola
+  foto son 3,3 puntos, y entre corridas de la **misma** configuración hay más de 10 puntos de diferencia (p. ej. 0,50–0,63). **No se puede
+  afirmar** que `pad` sea mejor que `crop`, ni que el aumento de datos ayude o no: aquí «sin aumento» no salió peor,
+  a diferencia del ensayo sintético. Cada experimento debe **repetirse varias veces y compararse por el promedio**.
+- La **caída de validación a prueba** (~0,72 → ~0,57) es coherente con que las fotos de prueba se tomaron en otras
+  condiciones, pero con 30 fotos no se puede separar del azar.
+- **Lo que no se probó** (ideas para el análisis o un experimento, sin evidencia todavía): una red preentrenada
+  (transfer learning), más fotos por objeto, o cambiar el recorte. El notebook de la clase entrena desde cero.
+- **Esto es un buen material para el video:** el enunciado dice que un 50 % bien explicado vale más que un 99 %
+  sin entender. Explicar *por qué* la red se queda en ~70 % (y qué muestra la matriz de confusión) es justo lo que se califica.
 
 ---
 
@@ -470,10 +524,11 @@ Ideas (elegir dos; cada una conecta con algo del código que ya habrá que expli
 
 | Idea | Qué se cambia | Qué se espera aprender |
 |---|---|---|
-| Sin aumento de datos (`USAR_AUMENTO = False`) | quitar `aug_transforms` | cuánto aporta el aumento con pocas imágenes (en el ensayo sustituto bajó la prueba ~0,93 → ~0,86) |
+| Sin aumento de datos (`USAR_AUMENTO = False`) | quitar `aug_transforms` | cuánto aporta el aumento con pocas imágenes (ensayo sustituto: bajó la prueba ~0,93 → ~0,86; **fotos reales: no hubo diferencia apreciable**) |
 | Más/menos épocas (`EPOCAS`) o lote (`BS`) | p. ej. `EPOCAS = 12` o `BS = 32` | ver el fallo de la sección 3.1 y explicar **por qué** pasa |
-| Otra tasa de aprendizaje (`TASA`) | `3e-3` → `1e-2` o `1e-3` | sensibilidad a la tasa (en el ensayo sustituto `1e-2` fue parecida a la base) |
+| Otra tasa de aprendizaje (`TASA`) | `3e-3` → `1e-2` o `1e-3` | sensibilidad a la tasa (ensayo sustituto y fotos reales: `1e-2` fue parecida a la base) |
 | Más filtros o una capa más | `capa(…)` en `crear_red` | si más capacidad ayuda con tan pocos datos |
+| Redimensionado (`REDIMENSION`) | `"pad"` ↔ `"crop"` ↔ `"squish"` | si recortar un lápiz de 6:1 perjudica; en el ensayo real la diferencia no se pudo distinguir del ruido |
 | Sin `BatchNorm2d` | quitar esa línea de `capa` | efecto sobre la estabilidad del entrenamiento |
 
 > **Cuidado con la regla «una sola cosa a la vez».** Los valores base del notebook (`BS = 16`,
@@ -602,7 +657,7 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 | Día | Meta |
 |---|---|
 | **Jue 22/10** | Elegir los tres objetos. Repartir roles. Empezar las fotos. C1/C2: subir `clasificador_propio.ipynb` a Colab con GPU y comprobar que corre (ya probado localmente con datos sustitutos). |
-| **Vie 23/10** | Fotos de entrenamiento completas (180). Reducirlas y subirlas a Drive. C1/C2: adaptar el notebook a las carpetas propias. |
+| **Vie 23/10** | ✔ Fotos de entrenamiento (180) y de prueba (30) **recibidas y revisadas** (sección 3.2). Pendiente: decidir si se descarta la foto borrosa y qué hacer con las muy alargadas. C1/C2: adaptar el notebook a las carpetas propias. |
 | **Sáb 24/10** | Fotos de prueba (30, en otras condiciones). Corrida base + **dos experimentos**. Llenar la sección 6. |
 | **Dom 25/10** | Cerrar el análisis del error. Repartir el guion, **ensayar y grabar**. Revisar el video completo. |
 | **Lun 26/10** | Enviar el video **antes de las 10:00 am**. Dejar margen: no dejar la grabación para la mañana de la entrega. |
@@ -655,6 +710,21 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
   (estaba en 0,52); se subió a 0,55 calibrando con el conjunto limpio (mínimos de 0,62 o más).
 - **Límite:** esa calibración es con renders limpios. Con fotos de celular puede dar falsos avisos o
   dejar pasar fotos mediocres: por eso siempre imprime las 3 menos nítidas de cada clase para mirarlas.
+
+### 2026-10-23 (noche) — Llegaron las fotos reales
+- Objetos: **lápiz · borrador · sacapuntas**. Se recibieron las carpetas de entrenamiento (60 por objeto) y prueba
+  (10 por objeto) desde Descargas; se trabajó con una copia normalizada en `fotos/` (la carpeta `"Sacapuntas "` tenía un
+  espacio al final y no coincidía con la de prueba). Los originales no se modificaron.
+- `verificar_fotos.py`: 0 errores. **Se corrigió el propio verificador** tras verlo con fotos reales: (1) el aviso de
+  «foto pequeña» miraba el lado menor y saltaba en fotos delgadas que sí están a 256 px; ahora mira el lado mayor y avisa
+  aparte de las **muy alargadas**; (2) el detector de borrosa daba falsos avisos con fondos lisos (medía el detalle
+  absoluto); se cambió por un índice de borrosidad (cuánto detalle conserva la foto al difuminarla). Se validó en los 3
+  conjuntos: fotos reales (1 aviso de borrosa), sintético limpio (0) y sintético con una foto borrosa inyectada (detectada).
+- **Hallazgo:** con las fotos reales la red llega a ~70 % (validación) y ~55–60 % (prueba), y entrenar más no ayuda (3.2).
+- **Decisión:** el notebook gana el parámetro `REDIMENSION` (por defecto `"pad"`, porque `crop` recorta los lápices muy
+  alargados). No se justifica con los números (la diferencia está dentro del ruido) sino con la geometría de las fotos.
+- **Verificación:** el notebook se ejecutó de punta a punta con las fotos reales (56,67 % en prueba) y sin errores;
+  las 8 configuraciones, con 3 semillas cada una (`scripts/ensayo_fotos_reales.py`). Probado en CPU, **no en Colab**.
 
 ---
 
