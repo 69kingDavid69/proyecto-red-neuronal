@@ -256,6 +256,47 @@ fueron **sacapuntas → borrador (5 veces)**, **borrador → sacapuntas (3)** y 
 - **Esto es un buen material para el video:** el enunciado dice que un 50 % bien explicado vale más que un 99 %
   sin entender. Explicar *por qué* la red se queda en ~70 % (y qué muestra la matriz de confusión) es justo lo que se califica.
 
+### 3.3 Mejoras probadas, análisis de errores y modelo guardado (24/10)
+
+**Mejoras: una sola cosa a la vez, partiendo de la base** (*pad*, 30 épocas, lote 16, 128 px; 3 semillas; medias):
+
+| Cambio respecto a la base | Validación (media) | Prueba (media) | Prueba, 3 corridas |
+|---|---|---|---|
+| **Base** | **0,73** | **0,60** | 0,57 · 0,63 · 0,60 |
+| Resolución 192 px | 0,71 | 0,56 | 0,47 · 0,63 · 0,57 |
+| Aumento de datos **fuerte** (giros 30°, zoom 1,4, luz 0,5, volteo vertical) | 0,55 | 0,63 | 0,63 · 0,67 · 0,60 |
+| Red más ancha (32-64-128-256) | 0,69 | 0,57 | 0,57 · 0,60 · 0,53 |
+| Red con 5 capas (hasta 256) | 0,75 | 0,61 | 0,60 · 0,67 · 0,57 |
+| *Dropout* 0,3 antes de la capa lineal | 0,68 | 0,65 | 0,63 · 0,70 · 0,63 |
+| *Weight decay* 0,1 | 0,74 | 0,57 | 0,57 · 0,57 · 0,57 |
+
+**Lectura honesta:** **ningún cambio mejora de forma clara.** Todas las medias de prueba están entre 0,56 y 0,65, y con
+30 fotos de prueba una sola foto son 3,3 puntos. Lo que se ve, con cautela: el aumento fuerte **baja** la validación
+(0,55: a la red le cuesta más ajustar el entrenamiento en 30 épocas) pero la prueba **no baja** (0,63); el *dropout* da la
+mejor prueba (0,65) con menor validación (0,68). Son diferencias pequeñas, no una prueba de que ayuden. Es decir, la red
+y los datos actuales topan en **~70 % de validación y ~55–65 % de prueba**.
+
+**Errores del modelo guardado** (14 errores de 30 fotos de prueba = 53,3 %): acertó 7/10 lápices, 5/10 borradores y 4/10
+sacapuntas.
+- **Sacapuntas (6 errores, todos «borrador»):** tres de las seis (`rsp_test_saca_2`, `_3` y `_5`) tienen el sacapuntas **pequeño, lejos y sobre un
+  piso gris**. En el entrenamiento casi no hay fotos así (la mayoría son primeros planos). _Hipótesis, no probada:_ la red
+  no vio objetos tan pequeños ni ese fondo con ese objeto.
+- **Lápiz (3 errores, todos «borrador»):** dos son las fotos **muy alargadas** de la prueba (proporción > 5:1), que con
+  `pad` quedan como una franja fina dentro de un cuadro negro; la tercera es un lápiz rosado.
+- **Borrador (5 errores):** 4 «sacapuntas» y 1 «lápiz». Tres de ellos son el mismo borrador amarillento sobre una tela
+  oscura, en fotos casi idénticas.
+- Es un **desplazamiento de condiciones** (distancia, fondo, ejemplares nuevos): justo lo que el enunciado pide al
+  tomar la prueba «en otro lugar, otro momento, otra luz».
+
+**Modelo guardado.** `learn.export` generó `modelos/modelo_objetos_base.pkl` (0,47 MB; la carpeta está en `.gitignore`).
+Se volvió a cargar en un **proceso nuevo** y dio **53,33 % en prueba, igual que en el notebook**, así que el guardado es
+fiel. El notebook tiene ahora la sección 7 (guardar y cargar), con la precaución de que el `.pkl` usa *pickle* y solo se
+cargan modelos propios.
+
+**Qué falta probar** (sin evidencia todavía): una red **preentrenada** (*transfer learning*; necesita descargar los pesos),
+más fotos de las situaciones que fallan (sacapuntas lejos, lápices alargados), o juntar las fotos de prueba con las de
+entrenamiento para validar mejor.
+
 ---
 
 ## 4. Explicación del código, celda por celda
@@ -535,6 +576,10 @@ Ideas (elegir dos; cada una conecta con algo del código que ya habrá que expli
 > `EPOCAS = 30`) ya difieren de la clase. Cada experimento parte de **esa base** y cambia **una**
 > variable. Repetir cada corrida 2–3 veces: una sola puede engañar.
 
+**Propuesta (el grupo decide):** A = **aumento de datos fuerte** (cuenta una historia clara: baja la validación y no la prueba)
+y B = ***dropout* 0,3** (la mejor prueba, 0,65). Ambos son un solo cambio sobre la base y se explican con lo que ya se
+estudia en el código. **Repetir cada uno 3 veces y comparar por la media** (sección 3.3).
+
 **Experimentos elegidos:** A (C1): _(pendiente)_ · B (C2): _(pendiente)_
 
 ---
@@ -725,6 +770,17 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
   alargados). No se justifica con los números (la diferencia está dentro del ruido) sino con la geometría de las fotos.
 - **Verificación:** el notebook se ejecutó de punta a punta con las fotos reales (56,67 % en prueba) y sin errores;
   las 8 configuraciones, con 3 semillas cada una (`scripts/ensayo_fotos_reales.py`). Probado en CPU, **no en Colab**.
+
+### 2026-10-24 — Modelo guardado, mejoras probadas y análisis de errores
+- Se agregó al notebook la **sección 7 (guardar y cargar el modelo)** y se generó `modelos/modelo_objetos_base.pkl`
+  (ignorado por Git). Se cargó en un proceso nuevo: 53,33 % en prueba, igual que en el notebook.
+- Se probaron **7 configuraciones** (una sola cosa a la vez, 3 semillas, `scripts/ensayo_mejoras.py`): ninguna mejora
+  claramente (sección 3.3). La red actual topa en ~70 % de validación y ~55–65 % de prueba.
+- **Análisis de errores:** 14 de 30; los 6 errores de sacapuntas son «borrador» y 3 de ellos son objetos pequeños y lejanos
+  sobre piso gris, algo casi ausente en el entrenamiento. Hipótesis, sin comprobar.
+- **Decisión pendiente:** si se prueba una red preentrenada (requiere descargar pesos de internet).
+- **Verificación:** el notebook con las celdas nuevas se ejecutó de punta a punta con las fotos reales sin errores
+  (CPU, no Colab). Las cifras de 3.3 vienen de las corridas y de los listados impresos de errores.
 
 ---
 

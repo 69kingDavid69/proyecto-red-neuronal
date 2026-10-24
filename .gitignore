@@ -27,3 +27,7 @@ mis_fotos/
 .DS_Store
 __pycache__/
 .ipynb_checkpoints/
+
+# Modelos entrenados (se regeneran; pesan y usan pickle)
+modelos/
+*.pkl
