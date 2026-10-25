@@ -375,20 +375,20 @@ Las secciones de abajo usan la numeración del **notebook de clase**. En el vide
 |---|---|---|
 | GPU · instalar · importar | 2 · 4 · 5 | 2 · 4 · 5 |
 | Montar Drive · reducir fotos (nuevas) | — | 7 · 9 |
-| Listar imágenes y etiquetas | 9 | 11 |
-| Balance de clases | 11 | 13 |
+| Listar imágenes y etiquetas (+ **comprueba que las carpetas de prueba se llamen igual**) | 9 | 11 |
+| Balance de clases (+ **galería de 8 fotos por objeto** y conteo de prueba) | 11 | 13 |
 | Mirar una foto · píxeles | 12 · 14 | 14 · 16 |
 | **`DataBlock`** (con `AUMENTO`, `BS`, `REDIMENSION`) | 16 | **19** |
 | `show_batch` | 17 | 20 |
 | **La red (`capa`, `crear_red`)** | 20 | **23** |
-| **`Learner` y entrenamiento** (`EPOCAS`, `TASA`) | 22 | **25** |
+| **`Learner` y entrenamiento** (`EPOCAS`, `TASA`; imprime los ajustes por época) | 22 | **25** |
 | Curvas · filtros | 23 · 25 | 26 · 28 |
 | `show_results` · matriz (validación) · `plot_top_losses` | 27 · 29 · 30 | 30 · 32 · 33 |
-| **Accuracy en prueba** | 32 | **35** |
+| **Accuracy en prueba** (+ tabla `registro_exp` de experimentos) | 32 | **35** |
 | **Matriz de confusión en prueba** (nueva) | — | **37** |
 | **Prueba en vivo** (nueva) | — | **39** |
 | Guardar · cargar el modelo (nuevas) | — | 41 · 43 |
-| **resnet18, experimento A** (`PREENTRENADA`) · su evaluación (nuevas) | — | **45** · 46 |
+| **resnet18, experimento A** (`PREENTRENADA`) · su evaluación y registro (nuevas) | — | **45** · 46 |
 
 ### Celda 2 — Verificar la GPU
 
@@ -659,7 +659,9 @@ modificaciones distintas, no al mismo tiempo.** Cambiar una pieza a la vez es lo
 (0 a 4: cambian el sorteo de los pesos iniciales y del aumento; la partición entrenamiento/validación es la misma). Se
 reporta la **media y el rango** (mínimo–máximo), no una corrida suelta. Todo lo ejecuta `scripts/experimentos_oficiales.py`
 y las 25 corridas están en `docs/resultados/experimentos.csv`. En el notebook cada experimento es **una sola línea**:
-`AUMENTO` (celda del `DataBlock`) y `pretrained=True/False` (sección 8).
+`AUMENTO` (celda 19, el `DataBlock`) y `PREENTRENADA = True/False` (celda 45). Cada corrida se agrega a la tabla
+`registro_exp` (celdas 35 y 46), que se puede mostrar en el video como «registro del efecto sobre el accuracy».
+**Ojo:** para el experimento B hay que volver a ejecutar desde la celda 19 (no solo la 25), porque el aumento vive en el `DataBlock`.
 
 > **Estos números son del ensayo local** (Mac, CPU, sus fotos). Hay que **repetirlos en Colab** y usar esas cifras en el
 > video: pueden variar unos puntos. Lo que no debería cambiar es la **conclusión cualitativa**.
@@ -815,7 +817,7 @@ Hablan los cuatro. El código es lo que más pesa (35 pts): darle la mayor parte
 
 **F1:** «Somos [nombres]. Hicimos el proceso completo de la clase —datos, modelo y evaluación— con fotos propias: nuestro clasificador distingue **lápiz, borrador y sacapuntas**.»
 
-**F2** _(mostrando las carpetas y abriendo varias imágenes de cada una)_: «Tenemos **60 fotos por objeto** para entrenar, 180 en total, y **10 por objeto de prueba**, tomadas en otro lugar y con otra luz. Variamos el fondo, la luz, la distancia y el ángulo, y usamos ejemplares distintos: lápices de varios colores, borradores de varias formas [mostrar ejemplos]. La etiqueta de cada foto es el nombre de su carpeta, y las reducimos a 256 píxeles.»
+**F2** _(mostrando las carpetas y abriendo varias imágenes de cada una; de apoyo, la galería de la celda 13)_: «Tenemos **60 fotos por objeto** para entrenar, 180 en total, y **10 por objeto de prueba**, tomadas en otro lugar y con otra luz. Variamos el fondo, la luz, la distancia y el ángulo, y usamos ejemplares distintos: lápices de varios colores, borradores de varias formas [mostrar ejemplos]. La etiqueta de cada foto es el nombre de su carpeta, y las reducimos a 256 píxeles.»
 
 **Bloque 2 · 0:45–1:45 · C1 — datos y `DataBlock`** _(~124 palabras)_
 
@@ -866,6 +868,8 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 ### 8.1 Lista final (dom 25/10 → lun 26/10, 10:00)
 
 - [ ] **Asignar F1, F2 y C2** en la tabla de la sección 1 (en el video hablan los cuatro).
+- [ ] Subir a Drive la copia con carpetas **en minúscula y sin espacios** (`borrador`, `lapiz`, `sacapuntas`): la carpeta
+      original `"Sacapuntas "` tiene un espacio al final. La celda 11 ahora se detiene si no coinciden.
 - [ ] **Correr el notebook completo en Colab con GPU** (nunca se ha probado allí) y guardar los `.pkl` en Drive.
 - [ ] Repetir en Colab cada experimento 2–3 veces y **anotar las cifras propias** en la sección 6 (A: `PREENTRENADA`
       True/False en la celda 45; B: `AUMENTO` en la celda 19).
@@ -990,6 +994,22 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
   explicación de las celdas nuevas (37, 39, 45) y lista final 8.1.
 - **Verificación:** el `.ipynb` se volvió a leer desde GitHub y es JSON válido con 47 celdas. **No se ejecutó** (no hay
   Python/fastai en el equipo donde se hizo): correrlo en Colab es el primer punto de la lista 8.1.
+
+### 2026-10-25 (tarde) — Segunda revisión: robustez para Colab, galería y registro de experimentos
+
+- **Celda 11:** compara los nombres de las carpetas de entrenamiento y prueba y se detiene con un mensaje claro si no
+  coinciden. Motivo: las carpetas originales tenían `"Sacapuntas "` (con espacio) en entrenamiento y `"Sacapuntas"` en
+  prueba. Si se suben así a Drive, la prueba falla o mide mal.
+- **Celda 13:** conteo de las fotos de prueba y una **galería de 8 fotos al azar por objeto**, para el bloque del conjunto
+  de imágenes (20 pts): se ve la variedad sin abrir foto por foto.
+- **Celda 25:** imprime los ajustes por época y en total (9 y 270 con 144 fotos, lote 16 y 30 épocas). Sirve para explicar
+  por qué se cambió el lote de 32 a 16.
+- **Celdas 35 y 46:** la tabla `registro_exp` acumula cada corrida (configuración, validación y prueba). El enunciado pide
+  «registrar el efecto sobre el accuracy».
+- **Celda 41:** el modelo se guarda como `modelo_objetos_base.pkl`, que es el nombre que busca `app/` (antes era
+  `modelo_objetos.pkl` y la app no lo encontraba).
+- **READMEs:** comandos para Windows además de Mac.
+- **Verificación:** el `.ipynb` es JSON válido (47 celdas) y el código de las celdas se revisó a mano. **No se ejecutó.**
 
 ---
 
