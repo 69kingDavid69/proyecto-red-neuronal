@@ -365,6 +365,31 @@ imágenes en carpetas ──► DataBlock (etiqueta, partición, tamaño, aument
                                                                 (accuracy, matriz de confusión, prueba)
 ```
 
+### Numeración de celdas: clase → nuestro notebook
+
+Las secciones de abajo usan la numeración del **notebook de clase**. En el video se muestra
+`clasificador_propio.ipynb`, donde las celdas cambian de lugar (contando desde 0, como `nbformat`).
+**Colab no muestra números de celda:** en el video guíense por los títulos de sección (`## 1. Los datos`, etc.).
+
+| Qué es | Clase | Nuestro notebook |
+|---|---|---|
+| GPU · instalar · importar | 2 · 4 · 5 | 2 · 4 · 5 |
+| Montar Drive · reducir fotos (nuevas) | — | 7 · 9 |
+| Listar imágenes y etiquetas | 9 | 11 |
+| Balance de clases | 11 | 13 |
+| Mirar una foto · píxeles | 12 · 14 | 14 · 16 |
+| **`DataBlock`** (con `AUMENTO`, `BS`, `REDIMENSION`) | 16 | **19** |
+| `show_batch` | 17 | 20 |
+| **La red (`capa`, `crear_red`)** | 20 | **23** |
+| **`Learner` y entrenamiento** (`EPOCAS`, `TASA`) | 22 | **25** |
+| Curvas · filtros | 23 · 25 | 26 · 28 |
+| `show_results` · matriz (validación) · `plot_top_losses` | 27 · 29 · 30 | 30 · 32 · 33 |
+| **Accuracy en prueba** | 32 | **35** |
+| **Matriz de confusión en prueba** (nueva) | — | **37** |
+| **Prueba en vivo** (nueva) | — | **39** |
+| Guardar · cargar el modelo (nuevas) | — | 41 · 43 |
+| **resnet18, experimento A** (`PREENTRENADA`) · su evaluación (nuevas) | — | **45** · 46 |
+
 ### Celda 2 — Verificar la GPU
 
 - **Qué hace:** `torch.cuda.is_available()` revisa si Colab asignó una GPU y la nombra.
@@ -594,6 +619,24 @@ error, acierto = learn.validate(dl=prueba)
 - **En nuestro proyecto:** apuntar a `fotos/prueba/` (30 imágenes) y **usar estas imágenes en vivo
   durante el video**.
 
+### Celdas nuevas de nuestro notebook
+
+**Celda 37 — Matriz de confusión sobre la prueba.** `ClassificationInterpretation.from_learner(learn, dl=prueba)`
+hace la matriz con las **30 fotos de prueba** en vez de las 36 de validación; `most_confused()` lista los pares
+(real, predicho, veces). *Por qué:* es la que responde «qué par confunde» con fotos tomadas en otras condiciones.
+*Si se quitara:* solo tendríamos la matriz de validación, que son fotos del mismo lugar que el entrenamiento.
+
+**Celda 39 — Prueba en vivo.** Elige 5 fotos de prueba al azar y, para cada una, `learn.predict(ruta)` devuelve la
+clase predicha, su índice y la probabilidad de cada clase; se dibuja la foto con «real → predice (N % seguro)».
+*Por qué:* es lo que el enunciado pide hacer sin cortes. *Ojo:* «95 % seguro» **no** significa que acierte el 95 %
+de las veces; es la probabilidad que la red le asigna a su respuesta, y puede estar muy segura y equivocarse.
+
+**Celda 45 — resnet18 (experimento A).** `vision_learner(dls_pre, resnet18, pretrained=PREENTRENADA)` arma una red de
+18 capas y le cambia la última capa por una de 3 salidas. `fine_tune` entrena primero solo esa capa nueva
+(`EPOCAS_LIBRES`, el resto congelado) y luego toda la red (`EPOCAS_AJUSTE`). El experimento es **cambiar solo
+`PREENTRENADA`** (True/False). *Si se quitara el preentrenamiento:* la misma red cae al nivel de la nuestra (~55 % en
+prueba), porque con 144 fotos no alcanza para aprender a ver desde cero.
+
 ### Cambios que hay que hacer para nuestros datos
 > **Estos cambios ya están hechos en `clasificador_propio.ipynb`.** Solo falta poner los nombres de
 > los tres objetos y apuntar las carpetas a las fotos reales.
@@ -719,8 +762,8 @@ Hablan los cuatro. El código es lo que más pesa (35 pts): darle la mayor parte
 | Tiempo | Bloque | Quién | Qué mostrar / decir |
 |---|---|---|---|
 | 0:00–0:45 | Introducción + **conjunto de imágenes** (20 pts) | F1, F2 | Qué problema es y qué objetos; abrir las carpetas y recorrer varias imágenes de cada objeto, decir cuántas hay y qué variaciones |
-| 0:45–1:45 | **Código I: datos** (35 pts) | C1 | Celdas 9, 11, **16** (`DataBlock`, partición, `pad`, aumento, lote 16) |
-| 1:45–2:45 | **Código II: modelo** (35 pts) | C2 | Celda **20** (capa, dimensiones), celda **22** (`Learner`, épocas, tasa de aprendizaje) |
+| 0:45–1:45 | **Código I: datos** (35 pts) | C1 | Celdas 11, 13, **19** de nuestro notebook (`DataBlock`, partición, `pad`, aumento, lote 16) |
+| 1:45–2:45 | **Código II: modelo** (35 pts) | C2 | Celda **23** (capa, dimensiones), celda **25** (`Learner`, épocas, tasa de aprendizaje) |
 | 2:45–3:30 | **Resultados y experimentos** (10 pts) | C2 / C1 | Curvas, accuracy, matriz de confusión; los dos experimentos y su efecto (p. ej. resnet18 con y sin preentrenar) |
 | 3:30–4:20 | **Prueba en vivo** (25 pts) | F2 | 5 imágenes de prueba, **sin cortes**, comentando cada respuesta |
 | 4:20–5:00 | **Análisis** | C2 / F1 | Qué par confunde, por qué, cuándo usarlo y cuándo no |
@@ -819,6 +862,18 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 | **Sáb 24/10** | Fotos de prueba (30, en otras condiciones). Corrida base + **dos experimentos**. Llenar la sección 6. |
 | **Dom 25/10** | Cerrar el análisis del error. Repartir el guion, **ensayar y grabar**. Revisar el video completo. |
 | **Lun 26/10** | Enviar el video **antes de las 10:00 am**. Dejar margen: no dejar la grabación para la mañana de la entrega. |
+
+### 8.1 Lista final (dom 25/10 → lun 26/10, 10:00)
+
+- [ ] **Asignar F1, F2 y C2** en la tabla de la sección 1 (en el video hablan los cuatro).
+- [ ] **Correr el notebook completo en Colab con GPU** (nunca se ha probado allí) y guardar los `.pkl` en Drive.
+- [ ] Repetir en Colab cada experimento 2–3 veces y **anotar las cifras propias** en la sección 6 (A: `PREENTRENADA`
+      True/False en la celda 45; B: `AUMENTO` en la celda 19).
+- [ ] Decidir **con qué modelo se hace la prueba en vivo** (red propia ~60 % o resnet18 ~90 %) y si se hace en el
+      notebook (celda 39) o en `app/`. Con la red propia es casi seguro que falle alguna: preparar cómo explicarlo.
+- [ ] Reescribir con palabras propias el «cuándo sí / cuándo no» de la sección 6 y el guion de la 7.5.
+- [ ] Ensayo cronometrado (≤ 5:00), grabar, revisar audio y que se lean las celdas.
+- [ ] Nombrar el archivo con los 4 apellidos en orden alfabético y **enviarlo antes de las 10:00 del lunes** a los dos correos.
 
 ---
 
@@ -922,6 +977,19 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
   experimento B con una sola línea.
 - **Corrección de una cifra:** con 3 semillas la preentrenada daba 0,92 en prueba; con 5 da 0,90. Se dejó nota en 3.4.
 - **Pendiente:** repetir los dos experimentos en Colab y usar esas cifras en el video; este ensayo es en CPU.
+
+### 2026-10-25 — Revisión contra el enunciado y limpieza del notebook
+
+- Se revisó el repo contra el enunciado (`proyecto_clasificador.tex`) y el notebook de clase.
+- **Notebook:** quedaban textos del ejemplo de clase que se habrían leído en el video: «una mano», «piedra», dedos en la
+  tabla de capas, «2.016 / 504 imágenes», «300 × 300» y «372 imágenes de prueba». Ahora hablan de nuestros datos
+  (144 / 36, 256 px, 30 de prueba, lápiz · borrador · sacapuntas). Se agregó la nota de ruido (3,3 puntos por foto).
+- **Experimento A en una línea:** la celda 45 tiene el parámetro `PREENTRENADA` (antes `pretrained=True` fijo, así
+  que el control no se podía correr desde el notebook). El control se guarda con otro nombre para no pisar el modelo bueno.
+- **Documento:** tabla de numeración clase → nuestro notebook (la sección 4 y el guion citaban las celdas de la clase),
+  explicación de las celdas nuevas (37, 39, 45) y lista final 8.1.
+- **Verificación:** el `.ipynb` se volvió a leer desde GitHub y es JSON válido con 47 celdas. **No se ejecutó** (no hay
+  Python/fastai en el equipo donde se hizo): correrlo en Colab es el primer punto de la lista 8.1.
 
 ---
 
