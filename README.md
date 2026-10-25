@@ -56,11 +56,13 @@ El accuracy no da puntos por sí mismo: se evalúa el razonamiento.
 ## Cómo trabajar
 
 ### 1. Revisar las fotos antes de subirlas
-Con las fotos en una carpeta `fotos/` (`entrenamiento/<objeto>/` y `prueba/<objeto>/`):
+Con las fotos en una carpeta `fotos/` (`entrenamiento/<objeto>/` y `prueba/<objeto>/`). **Los nombres de las carpetas
+deben ser idénticos en entrenamiento y prueba**, en minúscula y sin tildes ni espacios (`borrador`, `lapiz`, `sacapuntas`):
+la carpeta original `"Sacapuntas "` tenía un espacio al final y para el modelo eso es otra clase.
 
 ```bash
 pip install pillow
-python3 scripts/verificar_fotos.py fotos
+python3 scripts/verificar_fotos.py fotos      # en Windows: py scripts\verificar_fotos.py fotos
 ```
 
 Avisa de cantidades distintas de 60 y 10 por objeto, fotos dañadas, repetidas (sobre todo entre
