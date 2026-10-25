@@ -1018,6 +1018,17 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
   anexo). El repositorio es privado y el `LEEME` pide no compartirlas fuera del equipo.
 - Siguen fuera del repositorio: los modelos `.pkl`, las hojas de contacto, el paper y la lista del curso.
 
+### 2026-10-25 (noche) — El notebook de la revisión se ejecutó y se corrigió un error
+- El notebook de la segunda revisión (47 celdas) **no se había ejecutado**. Se ejecutó de punta a punta con las 210 fotos reales
+  (CPU, no Colab) y **fallaba en dos celdas** con `IndexError: list index out of range`: las que arman la tabla `registro_exp`
+  leían `learn.recorder.values[-1][2]` **después** de `learn.validate(...)` y de `ClassificationInterpretation`, y esos llamados
+  **reemplazan** `recorder.values`, que ya no tiene la columna de la exactitud.
+- **Corrección:** la exactitud de validación se guarda en `acc_validacion` (y `acc_validacion_pre`) **al final de la celda de
+  entrenamiento**, antes de cualquier evaluación, y la tabla usa esas variables. Es un cambio de pocas líneas.
+- **Verificación:** tras el cambio, ejecución completa **sin celdas con error**. Una corrida: red propia 0,694 en validación y
+  0,567 en prueba; resnet18 preentrenada 1,000 y 0,867; la tabla `registro_exp` acumula las dos filas. Sigue **sin probarse en Colab**.
+- **Las fotos pasaron al repositorio** (210, `fotos/`, ver `fotos/LEEME.md`): ninguna tiene EXIF ni ubicación.
+
 ---
 
 ## Referencias
