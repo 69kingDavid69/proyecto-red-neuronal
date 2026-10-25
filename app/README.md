@@ -7,12 +7,26 @@ foto y mira qué responde cada modelo. No sube nada a internet: el programa solo
 
 Requiere los modelos guardados por el notebook (sección 7 → `modelo_objetos_base.pkl`; sección 8 →
 `modelo_objetos_preentrenado.pkl`) dentro de la carpeta `modelos/`, y las fotos de prueba en `fotos/prueba/`.
+Si se entrenó en Colab, descargar los `.pkl` desde Drive a `modelos/` **sin cambiarles el nombre**.
+
+**Mac / Linux:**
 
 ```bash
 python3 -m venv .venv                  # solo la primera vez
 .venv/bin/pip install fastai           # solo la primera vez (descarga ~1 GB)
 .venv/bin/python app/servidor.py
 ```
+
+**Windows (PowerShell):**
+
+```powershell
+py -m venv .venv                       # solo la primera vez
+.venv\Scripts\pip install fastai       # solo la primera vez (descarga ~1 GB)
+.venv\Scripts\python app\servidor.py
+```
+
+> Los `.pkl` se deben cargar con una versión de fastai parecida a la de Colab. Si al cargarlos sale un error de
+> versión, instalar la misma: en Colab `import fastai; fastai.__version__` y aquí `pip install fastai==<esa versión>`.
 
 Abrir <http://127.0.0.1:8765>. Para cerrar el programa: `Ctrl + C` en la terminal.
 Otras rutas: `--puerto 9000`, `--modelos otra_carpeta`, `--prueba otra_carpeta`.
