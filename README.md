@@ -17,7 +17,7 @@ con el celular**.
 | `docs/documento-de-estudio.md` | Documento vivo del equipo: reparto de tareas, protocolo de fotos, explicación del código celda por celda, experimentos, guion del video, calendario y bitácora. |
 
 Lo que **no** se sube (ver `.gitignore`): los datos de ejemplo de la clase, la
-lista del curso, el paper de referencia y el video final.
+lista del curso, el paper de referencia, el video final y los modelos entrenados (`modelos/`).
 
 ## Resumen del enunciado
 
@@ -71,7 +71,8 @@ fondo». También guarda hojas de contacto en `fotos_revision/` para mirar la va
 avisos son heurísticos: son una pista para mirar, no un veredicto.
 
 ### 2. Abrir el notebook en Colab
-1. Subir la carpeta `fotos/` a Google Drive.
+1. Las fotos ya están en este repositorio (`fotos/`, ver `fotos/LEEME.md`). Para Colab, subir esa carpeta a Google Drive
+   (descargar el repositorio como `.zip` desde GitHub y subir `fotos/`).
 2. En Colab: *Archivo → Abrir cuaderno → GitHub* y pegar `69kingDavid69/proyecto-red-neuronal`
    (el repo es privado: Colab pide autorizar el acceso a GitHub con la cuenta que tenga acceso).
    Alternativa: descargar `clasificador_propio.ipynb` y subirlo a Colab.

@@ -12,8 +12,8 @@ refALEX-NET.pdf
 # Entregas: el video final no va en git
 ENTREGAS/
 
-# Fotos propias del proyecto (originales, reducidas y hojas de contacto): pesan y no se entregan
-fotos/
+# Hojas de contacto que genera verificar_fotos.py, y carpetas de fotos sin reducir.
+# (Las fotos reducidas del proyecto SÍ están en el repositorio: carpeta fotos/, ver fotos/LEEME.md)
 fotos_revision/
 imagenes/
 mis_fotos/

@@ -1011,6 +1011,13 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
 - **READMEs:** comandos para Windows además de Mac.
 - **Verificación:** el `.ipynb` es JSON válido (47 celdas) y el código de las celdas se revisó a mano. **No se ejecutó.**
 
+### 2026-10-25 — Las fotos pasan al repositorio
+- A pedido del usuario se subieron las **210 fotos reducidas** (`fotos/`, 1,8 MB) con los nombres de carpeta normalizados
+  (`borrador`, `lapiz`, `sacapuntas`) y un `fotos/LEEME.md`. Antes estaban ignoradas por Git.
+- **Comprobado antes de subir:** ninguna foto tiene metadatos EXIF ni ubicación (se perdieron al reducirlas con el script del
+  anexo). El repositorio es privado y el `LEEME` pide no compartirlas fuera del equipo.
+- Siguen fuera del repositorio: los modelos `.pkl`, las hojas de contacto, el paper y la lista del curso.
+
 ---
 
 ## Referencias
