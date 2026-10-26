@@ -74,7 +74,7 @@ avisos son heurísticos: son una pista para mirar, no un veredicto.
 1. Las fotos ya están en este repositorio (`fotos/`, ver `fotos/LEEME.md`). Para Colab, subir esa carpeta a Google Drive
    (descargar el repositorio como `.zip` desde GitHub y subir `fotos/`).
 2. En Colab: *Archivo → Abrir cuaderno → GitHub* y pegar `69kingDavid69/proyecto-red-neuronal`
-   (el repo es privado: Colab pide autorizar el acceso a GitHub con la cuenta que tenga acceso).
+   (el repositorio es público: no hace falta autorizar nada).
    Alternativa: descargar `clasificador_propio.ipynb` y subirlo a Colab.
 3. *Entorno de ejecución → Cambiar tipo de entorno de ejecución → T4 GPU*.
 4. Ajustar las celdas marcadas **⚙ PARÁMETROS** (nombres de objetos y rutas) y ejecutar en orden.

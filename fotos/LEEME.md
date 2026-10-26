@@ -17,4 +17,4 @@ Revisión: `python3 scripts/verificar_fotos.py fotos` (cantidades, fotos dañada
 Resultado de la revisión del 23/10: 0 errores; una foto posiblemente borrosa (`entrenamiento/lapiz/rsp_lap_17.jpg`) y
 13 fotos muy alargadas (lápiz). Detalle en la sección 3.2 de `docs/documento-de-estudio.md`.
 
-**Uso de las fotos:** son del grupo, para este trabajo. No subir ni compartir fuera del equipo.
+**Uso de las fotos:** son del grupo y se publicaron junto con el trabajo del curso IPCC–ML (repositorio público). Son fotos de útiles de escritorio, sin metadatos ni ubicación.

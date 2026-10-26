@@ -1029,6 +1029,14 @@ Hoy es **jueves 22/10**. Quedan **cuatro días** hasta el lunes 26/10 a las 10:0
   0,567 en prueba; resnet18 preentrenada 1,000 y 0,867; la tabla `registro_exp` acumula las dos filas. Sigue **sin probarse en Colab**.
 - **Las fotos pasaron al repositorio** (210, `fotos/`, ver `fotos/LEEME.md`): ninguna tiene EXIF ni ubicación.
 
+### 2026-10-25 (noche) — El repositorio pasa a público
+- A pedido del usuario, para que la profesora pueda verlo, el repositorio se puso **público**. Antes se revisó que no tuviera
+  contraseñas, claves ni archivos sensibles (la lista del curso y los modelos nunca se versionaron).
+- **Lo que queda visible:** las 210 fotos (sin EXIF), los nombres del grupo, el enunciado con los correos institucionales de
+  entrega y el correo de Gmail del autor de 14 commits. El usuario lo decidió sabiéndolo. Se puede volver a privado desde
+  *Settings*, pero lo ya copiado no se retira.
+- Se actualizaron `README.md` y `fotos/LEEME.md`, que decían que el repositorio era privado.
+
 ---
 
 ## Referencias
